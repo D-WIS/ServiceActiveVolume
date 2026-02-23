@@ -87,6 +87,28 @@ The worker emits informational diagnostics each cycle when `Information` logging
 - estimated bias (`L/min`)
 - return flow capacity scale (`L/min`)
 
+## Realtime Input/Output Dumping
+
+The worker also keeps an in-process buffer of realtime snapshots (inputs + outputs) and dumps them as JSON files on a fixed boundary schedule.
+
+- Default dump directory: `/home`
+- Default dump interval: `01:00:00` (every plain hour in UTC)
+- After each successful dump, the in-memory buffer is reset to prevent unbounded memory growth.
+
+Configuration keys (same configuration source used by the worker runtime):
+
+- `EnableRealtimeDataDump` (`bool`, default `true`)
+- `RealtimeDataDumpDirectory` (`string`, default `"/home"`)
+- `RealtimeDataDumpInterval` (`TimeSpan`, default `"01:00:00"`)
+
+Output file format:
+
+- File name: `activevolume-realtime-YYYYMMDDTHHMMSSZ.json`
+- Content: dump timestamp, configured interval, and per-cycle samples containing:
+  - timestamp
+  - input snapshot (`ActiveVolume`, `FlowrateIn`, `ShakerLoadEstimates`, `CuttingsRecoveryRates`)
+  - output snapshot (`CorrectedActiveVolume`, `EstimatedPitVolumeFlowBias`, `ReturnFlowCapacityScale`)
+
 ## Build and Run
 
 ### Local

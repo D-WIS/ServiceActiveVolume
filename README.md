@@ -71,6 +71,20 @@ dotnet run --project DWIS.Service.ActiveVolume.DataSink/DWIS.Service.ActiveVolum
 - OPC UA / client connection setup is under each project `config/Quickstarts.ReferenceClient.Config.xml`.
 - EKF tuning and numerical settings are exposed via `ConfigurationForActiveVolume` in the model project and consumed by Server.
 
+### Realtime Input/Output Dumping (Server)
+
+`DWIS.Service.ActiveVolume.Server` now supports periodic dumping of realtime input/output snapshots to JSON files.
+
+- Default dump directory: `/home` (shared Docker volume location)
+- Default dump interval: `01:00:00` (every plain UTC hour)
+- In-memory samples are reset after each successful dump to prevent memory growth.
+
+Configuration keys (in the same runtime configuration source used by Server, e.g. `home/config.json`):
+
+- `EnableRealtimeDataDump` (`true`/`false`, default `true`)
+- `RealtimeDataDumpDirectory` (default `"/home"`)
+- `RealtimeDataDumpInterval` (`TimeSpan`, default `"01:00:00"`)
+
 ## Containers
 
 Each runtime project (`DataSource`, `Server`, `DataSink`) includes a Dockerfile for containerized execution.

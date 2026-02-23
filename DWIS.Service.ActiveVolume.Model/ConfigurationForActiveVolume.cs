@@ -4,6 +4,10 @@ namespace DWIS.Service.ActiveVolume.Model
 {
     public class ConfigurationForActiveVolume : Configuration
     {
+        public bool EnableRealtimeDataDump { get; set; } = true;
+        public string RealtimeDataDumpDirectory { get; set; } = "/home";
+        public TimeSpan RealtimeDataDumpInterval { get; set; } = TimeSpan.FromHours(1);
+
         public double MinDtSeconds { get; set; } = 0.2;
         public double MaxDtSeconds { get; set; } = 5.0;
         public double DefaultDtSeconds { get; set; } = 1.0;
