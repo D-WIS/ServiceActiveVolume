@@ -4,7 +4,8 @@ using DWIS.Service.ActiveVolume.Model;
 
 namespace DWIS.Service.ActiveVolume.DataSink
 {
-    public class Worker : DWISWorker<Configuration>
+
+    public class Worker : DWISWorker<Configuration, object>
     {
         private RealtimeOutputsData RealtimeOutputsData { get; set; } = new RealtimeOutputsData();
 

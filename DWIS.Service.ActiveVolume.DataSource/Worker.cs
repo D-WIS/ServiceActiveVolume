@@ -4,7 +4,7 @@ using DWIS.Service.ActiveVolume.Model;
 
 namespace DWIS.Service.ActiveVolume.DataSource
 {
-    public class Worker : DWISWorker<Configuration>
+    public class Worker : DWISWorker<Configuration, object>
     {
         private RealtimeInputsData RealtimeInputsData { get; set; } = new RealtimeInputsData();
 
@@ -18,7 +18,7 @@ namespace DWIS.Service.ActiveVolume.DataSource
             ConnectToBlackboard();
             if (_DWISClient != null && _DWISClient.Connected)
             {
-                await RegisterToBlackboard(RealtimeInputsData);
+                await RegisterToBlackboard(RealtimeInputsData, false);
                 await Loop(stoppingToken);
             }
         }
@@ -26,13 +26,13 @@ namespace DWIS.Service.ActiveVolume.DataSource
         protected override async Task Loop(CancellationToken cancellationToken)
         {
             PeriodicTimer timer = new PeriodicTimer(LoopSpan);
-            double flowrateIn = 2000.0/60000.0; // 2000 L/min converted to m^3/s
+            double flowrateIn = 2000.0 / 60000.0; // 2000 L/min converted to m^3/s
             double flowrateOut = flowrateIn;
             double activeVolumePeriod = 15.0; // seconds
             double activeVolumeAmplitude = 1.0; // m^3  
             double activeVolume = 30.0; // m^3
-            double scalingFactor = 3000.0/60000.0; // scaling factor for flowrate out proportion in m^3/s
-            double cuttingsFlowrate = 30.0/60000.0; // 20 L/min converted to m^3/s
+            double scalingFactor = 3000.0 / 60000.0; // scaling factor for flowrate out proportion in m^3/s
+            double cuttingsFlowrate = 30.0 / 60000.0; // 20 L/min converted to m^3/s
             double cuttingsFlowrateStandardDeviation = 1.0 / 60000.0;
             double shakerLoadStandardDeviation = 0.1;
             double t = 0;
@@ -51,27 +51,27 @@ namespace DWIS.Service.ActiveVolume.DataSource
                 RealtimeInputsData.ActiveVolume.Value = activeVolume + activeVolumeAmplitude * Math.Sin(t * 2 * Math.PI / activeVolumePeriod);
                 if (RealtimeInputsData.CuttingsRecoveryRates is null)
                 {
-                    RealtimeInputsData.CuttingsRecoveryRates = new GaussianValuesProperty();
+                    RealtimeInputsData.CuttingsRecoveryRates = new ScalarsProperty();
                 }
-                if (RealtimeInputsData.CuttingsRecoveryRates.Values == null)
+                if (RealtimeInputsData.CuttingsRecoveryRates.Value == null)
                 {
-                    RealtimeInputsData.CuttingsRecoveryRates.Values = new List<GaussianValue>();
+                    RealtimeInputsData.CuttingsRecoveryRates.Value = new List<double>();
                 }
-                RealtimeInputsData.CuttingsRecoveryRates.Values.Clear();
-                RealtimeInputsData.CuttingsRecoveryRates.Values.Add(new GaussianValue() { Mean = 0.5 * cuttingsFlowrate, StandardDeviation = cuttingsFlowrateStandardDeviation });
-                RealtimeInputsData.CuttingsRecoveryRates.Values.Add(new GaussianValue() { Mean = 0.5 * cuttingsFlowrate, StandardDeviation = cuttingsFlowrateStandardDeviation });
+                RealtimeInputsData.CuttingsRecoveryRates.Value.Clear();
+                RealtimeInputsData.CuttingsRecoveryRates.Value.Add(0.5 * cuttingsFlowrate);
+                RealtimeInputsData.CuttingsRecoveryRates.Value.Add(0.5 * cuttingsFlowrate);
                 if (RealtimeInputsData.ShakerLoadEstimates is null)
                 {
-                    RealtimeInputsData.ShakerLoadEstimates = new GaussianValuesProperty();
+                    RealtimeInputsData.ShakerLoadEstimates = new ScalarsProperty();
                 }
-                if (RealtimeInputsData.ShakerLoadEstimates.Values == null)
+                if (RealtimeInputsData.ShakerLoadEstimates.Value == null)
                 {
-                    RealtimeInputsData.ShakerLoadEstimates.Values = new List<GaussianValue>();
+                    RealtimeInputsData.ShakerLoadEstimates.Value = new List<double>();
                 }
                 double totalShakerLoadEstimates = flowrateOut / scalingFactor;
-                RealtimeInputsData.ShakerLoadEstimates.Values.Clear();
-                RealtimeInputsData.ShakerLoadEstimates.Values.Add(new GaussianValue() { Mean = 0.5 * totalShakerLoadEstimates * 10.0, StandardDeviation = shakerLoadStandardDeviation });
-                RealtimeInputsData.ShakerLoadEstimates.Values.Add(new GaussianValue() { Mean = 0.5 * totalShakerLoadEstimates * 10.0, StandardDeviation = shakerLoadStandardDeviation });
+                RealtimeInputsData.ShakerLoadEstimates.Value.Clear();
+                RealtimeInputsData.ShakerLoadEstimates.Value.Add(0.5 * totalShakerLoadEstimates * 10.0);
+                RealtimeInputsData.ShakerLoadEstimates.Value.Add(0.5 * totalShakerLoadEstimates * 10.0);
                 t += LoopSpan.TotalSeconds;
                 await PublishBlackboardAsync(RealtimeInputsData, cancellationToken);
                 lock (_lock)
@@ -90,16 +90,13 @@ namespace DWIS.Service.ActiveVolume.DataSource
 
                         }
                         double flowrateOutProportion = 0.0;
-                        if (RealtimeInputsData.ShakerLoadEstimates is not null && RealtimeInputsData.ShakerLoadEstimates.Values is not null)
+                        if (RealtimeInputsData.ShakerLoadEstimates is not null && RealtimeInputsData.ShakerLoadEstimates.Value is not null)
                         {
                             int count = 0;
-                            foreach (var shakerLoadEstimate in RealtimeInputsData.ShakerLoadEstimates.Values)
+                            foreach (var shakerLoadEstimate in RealtimeInputsData.ShakerLoadEstimates.Value)
                             {
-                                if (shakerLoadEstimate is not null && shakerLoadEstimate.Mean is not null)
-                                {
-                                    flowrateOutProportion += shakerLoadEstimate.Mean.Value / 10.0;
-                                    count++;
-                                }
+                                flowrateOutProportion += shakerLoadEstimate / 10.0;
+                                count++;
                             }
                             if (count > 0)
                             {
@@ -108,14 +105,11 @@ namespace DWIS.Service.ActiveVolume.DataSource
                         }
                         Logger.LogInformation("Flowrate out proportion: " + (flowrateOutProportion * 100.0).ToString("F3") + " %");
                         double totalCuttingsFlowrate = 0.0;
-                        if (RealtimeInputsData.CuttingsRecoveryRates is not null && RealtimeInputsData.CuttingsRecoveryRates.Values is not null)
+                        if (RealtimeInputsData.CuttingsRecoveryRates is not null && RealtimeInputsData.CuttingsRecoveryRates.Value is not null)
                         {
-                            foreach (var cuttingsRecoveryRate in RealtimeInputsData.CuttingsRecoveryRates.Values)
+                            foreach (var cuttingsRecoveryRate in RealtimeInputsData.CuttingsRecoveryRates.Value)
                             {
-                                if (cuttingsRecoveryRate is not null && cuttingsRecoveryRate.Mean is not null)
-                                {
-                                    totalCuttingsFlowrate += cuttingsRecoveryRate.Mean.Value;
-                                }
+                                totalCuttingsFlowrate += cuttingsRecoveryRate;
                             }
                         }
                         Logger.LogInformation("Cuttings flowrate: " + (totalCuttingsFlowrate * 60000.0).ToString("F3") + " L/min");

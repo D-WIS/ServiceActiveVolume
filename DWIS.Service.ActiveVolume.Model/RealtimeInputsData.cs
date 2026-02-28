@@ -12,7 +12,7 @@ namespace DWIS.Service.ActiveVolume.Model
     {
 
         private static readonly Lazy<IReadOnlyDictionary<PropertyInfo, Dictionary<string, QuerySpecification>>> LocalSparQLQueries = new(BuildSparQLQueries(typeof(RealtimeInputsData)));
-        private static readonly Lazy<IReadOnlyDictionary<PropertyInfo, ManifestFile>> LocalManifests = new(BuildManifests(typeof(RealtimeInputsData), "ActiveVolumeDataManifest", "DWIS", "DWISService"));
+        private static readonly Lazy<IReadOnlyDictionary<PropertyInfo, ManifestFile>> LocalManifests = new(BuildManifests(typeof(RealtimeInputsData), "ActiveVolumeData", "DWIS", "DWISService"));
         public override Lazy<IReadOnlyDictionary<PropertyInfo, Dictionary<string, QuerySpecification>>> SparQLQueries { get => LocalSparQLQueries; }
         public override Lazy<IReadOnlyDictionary<PropertyInfo, ManifestFile>> Manifests { get => LocalManifests; }
 
@@ -50,7 +50,7 @@ namespace DWIS.Service.ActiveVolume.Model
         [OptionalFact(2, "Q_tos#01", Nouns.Enum.FlowRateIn)]
         public ScalarProperty? FlowrateIn { get; set; } = null;
 
-        [AccessToVariable(CommonProperty.VariableAccessType.Readable)]
+        [AccessToVariable(CommonProperty.VariableAccessType.Assignable)]
         [Mandatory(CommonProperty.MandatoryType.General)]
         [SemanticStringVariable("CleanSightShakerLoadEstimate")]
         [SemanticFact("CleanSightShakerLoadEstimate", Nouns.Enum.DynamicDrillingSignal)]
@@ -70,9 +70,9 @@ namespace DWIS.Service.ActiveVolume.Model
         [SemanticFact("CleanSightShakerLoadEstimate#01", Verbs.Enum.IsComputedBy, "ImageInterpreter#01")]
         [SemanticFact("DrillDocs#01", Nouns.Enum.InstrumentationCompany)]
         [SemanticFact("CleanSightShakerLoadEstimate#01", Verbs.Enum.IsProvidedBy, "DrillDocs#01")]
-        public GaussianValuesProperty? ShakerLoadEstimates { get; set; } = null;
+        public ScalarsProperty? ShakerLoadEstimates { get; set; } = null;
 
-        [AccessToVariable(CommonProperty.VariableAccessType.Readable)]
+        [AccessToVariable(CommonProperty.VariableAccessType.Assignable)]
         [Mandatory(CommonProperty.MandatoryType.General)]
         [SemanticStringVariable("CleanSightCuttingsRecoveryRate")]
         [SemanticFact("CleanSightCuttingsRecoveryRate", Nouns.Enum.DynamicDrillingSignal)]
@@ -95,6 +95,6 @@ namespace DWIS.Service.ActiveVolume.Model
         [SemanticFact("CleanSightCuttingsRecoveryRate#01", Verbs.Enum.IsComputedBy, "ImageInterpreter#01")]
         [SemanticFact("DrillDocs#01", Nouns.Enum.InstrumentationCompany)]
         [SemanticFact("CleanSightCuttingsRecoveryRate#01", Verbs.Enum.IsProvidedBy, "DrillDocs#01")]
-        public GaussianValuesProperty? CuttingsRecoveryRates { get; set; } = null;
+        public ScalarsProperty? CuttingsRecoveryRates { get; set; } = null;
     }
 }

@@ -19,16 +19,13 @@ namespace DWIS.Service.ActiveVolume.Model
         public static void FuseData(ConfigurationForActiveVolume configuration, RealtimeInputsData inputs, RealtimeOutputsData outputs)
         {
             double flowrateOutProportion = 0.0;
-            if (inputs.ShakerLoadEstimates is not null && inputs.ShakerLoadEstimates.Values is not null)
+            if (inputs.ShakerLoadEstimates is not null && inputs.ShakerLoadEstimates.Value is not null)
             {
                 int count = 0;
-                foreach (var shakerLoadEstimate in inputs.ShakerLoadEstimates.Values)
+                foreach (var shakerLoadEstimate in inputs.ShakerLoadEstimates.Value)
                 {
-                    if (shakerLoadEstimate is not null && shakerLoadEstimate.Mean is not null)
-                    {
-                        flowrateOutProportion += shakerLoadEstimate.Mean.Value / 10.0;
+                        flowrateOutProportion += shakerLoadEstimate / 10.0;
                         count++;
-                    }
                 }
                 if (count > 0)
                 {
@@ -37,14 +34,11 @@ namespace DWIS.Service.ActiveVolume.Model
             }
 
             double cuttingsFlowrate = 0.0;
-            if (inputs.CuttingsRecoveryRates is not null && inputs.CuttingsRecoveryRates.Values is not null)
+            if (inputs.CuttingsRecoveryRates is not null && inputs.CuttingsRecoveryRates.Value is not null)
             {
-                foreach (var cuttingsRecoveryRate in inputs.CuttingsRecoveryRates.Values)
+                foreach (var cuttingsRecoveryRate in inputs.CuttingsRecoveryRates.Value)
                 {
-                    if (cuttingsRecoveryRate is not null && cuttingsRecoveryRate.Mean is not null)
-                    {
-                        cuttingsFlowrate += cuttingsRecoveryRate.Mean.Value;
-                    }
+                        cuttingsFlowrate += cuttingsRecoveryRate;
                 }
             }
 
