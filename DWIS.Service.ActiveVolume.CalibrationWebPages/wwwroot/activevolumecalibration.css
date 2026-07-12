@@ -1,0 +1,69 @@
+.activevolumecalibration-nav {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1rem;
+}
+
+.activevolumecalibration-nav a {
+    color: inherit;
+    padding: 0.35rem 0.5rem;
+    text-decoration: none;
+}
+
+.activevolumecalibration-nav a:hover {
+    background: #e8eef6;
+}
+
+.activevolumecalibration-nav-group {
+    font-weight: 700;
+    margin-top: 1rem;
+    opacity: 0.75;
+}
+
+.activevolumecalibration-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.activevolumecalibration-table th,
+.activevolumecalibration-table td {
+    border-bottom: 1px solid #d0d7de;
+    padding: 0.5rem;
+    text-align: left;
+}
+
+.activevolumecalibration-page {
+    max-width: 980px;
+}
+
+.activevolumecalibration-page h1 {
+    color: #17324d;
+    margin: 0 0 0.75rem;
+}
+
+.activevolumecalibration-page p {
+    color: #46596c;
+    margin: 0 0 1.25rem;
+}
+
+.activevolumecalibration-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.activevolumecalibration-actions a {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #b8c7d9;
+    border-radius: 4px;
+    color: #17324d;
+    display: inline-flex;
+    min-height: 2.5rem;
+    padding: 0 1rem;
+    text-decoration: none;
+}
+
+.activevolumecalibration-actions a:hover {
+    background: #eef4fb;
+}

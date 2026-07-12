@@ -31,8 +31,8 @@ jobs:
       - name: Push CalibrationService Docker image
         run: docker push digiwells/norcedrillingactivevolumecalibrationservice:stable
 
-      - name: Build WebApp Docker image
-        run: docker build --file "${{ github.workspace }}/DWIS.Service.ActiveVolume.WebApp/Dockerfile" --tag digiwells/norcedrillingactivevolumewebappclient:stable .
+      - name: Build CalibrationWebApp Docker image
+        run: docker build --file "${{ github.workspace }}/DWIS.Service.ActiveVolume.CalibrationWebApp/Dockerfile" --tag digiwells/norcedrillingactivevolumecalibrationwebappclient:stable .
 
-      - name: Push WebApp Docker image
-        run: docker push digiwells/norcedrillingactivevolumewebappclient:stable
+      - name: Push CalibrationWebApp Docker image
+        run: docker push digiwells/norcedrillingactivevolumecalibrationwebappclient:stable

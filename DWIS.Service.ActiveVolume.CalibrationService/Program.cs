@@ -11,17 +11,11 @@ builder.Services.AddSwaggerGen(config => config.CustomSchemaIds(type => type.Ful
 
 var app = builder.Build();
 
-var basePath = builder.Configuration["BasePath"] ?? "/activevolume/api";
-var alternateBasePath = builder.Configuration["AlternateBasePath"] ?? "/activevolumecalibration/api";
+var basePath = builder.Configuration["BasePath"] ?? "/activevolumecalibration/api";
 
 app.Use((context, next) =>
 {
-    if (context.Request.Path.StartsWithSegments(alternateBasePath, out PathString alternateRemaining))
-    {
-        context.Request.PathBase = alternateBasePath;
-        context.Request.Path = alternateRemaining;
-    }
-    else if (context.Request.Path.StartsWithSegments(basePath, out PathString remaining))
+    if (context.Request.Path.StartsWithSegments(basePath, out PathString remaining))
     {
         context.Request.PathBase = basePath;
         context.Request.Path = remaining;
@@ -44,7 +38,6 @@ app.MapGet("/ActiveVolumeCalibration", () => Results.Ok(new
 {
     Service = "DWIS ActiveVolume Calibration Service",
     PrimaryBasePath = basePath,
-    AlternateBasePath = alternateBasePath,
     Routes = new[]
     {
         "ActiveVolumeCase",

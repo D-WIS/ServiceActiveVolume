@@ -1,15 +1,15 @@
-# Default values for norcedrillingactivevolumecalibrationservice.
+# Default values for norcedrillingactivevolumecalibrationwebappclient.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 replicaCount: 1
 image:
-  repository: digiwells/norcedrillingactivevolumecalibrationservice
+  repository: digiwells/norcedrillingactivevolumecalibrationwebappclient
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: "stable"
 imagePullSecrets: []
-nameOverride: "norcedrillingactivevolumecalibrationservice"
-fullnameOverride: "norcedrillingactivevolumecalibrationservice"
+nameOverride: "norcedrillingactivevolumecalibrationwebappclient"
+fullnameOverride: "norcedrillingactivevolumecalibrationwebappclient"
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
@@ -32,41 +32,42 @@ service:
   type: ClusterIP
   port: 80
   annotations:
-    description: "A microservice for handling ActiveVolume calibration"
+    description: "A webapp client for handling ActiveVolume calibration"
 env:
-  BasePath: "/activevolumecalibration/api"
-  DatabasePath: "/home/activevolume-calibration.db"
-  MaxConcurrentCalibrationJobs: "2"
+  BasePath: "/activevolumecalibration/webapp"
+  ActiveVolumeCalibrationHostURL: "http://norcedrillingactivevolumecalibrationservice/"
   FieldHostURL: "http://norcedrillingfieldservice/"
   ClusterHostURL: "http://norcedrillingclusterservice/"
   WellHostURL: "http://norcedrillingwellservice/"
   WellBoreHostURL: "http://norcedrillingwellboreservice/"
   WellBoreArchitectureHostURL: "http://norcedrillingwellborearchitectureservice/"
   DrillStringHostURL: "http://norcedrillingdrillstringservice/"
+  UnitConversionHostURL: "http://osdcunitconversionservice/"
+  VerticalDepthHostURL: "http://norcedrillingverticaldepthservice/"
 ingress:
   enabled: true
   className: public
   annotations:
     # nginx-ingress: Enable regex path matching for case-insensitive routing
-    # This allows /ActiveVolumeCalibration/api to match the same route as /activevolumecalibration/api
+    # This allows /ActiveVolumeCalibration/webapp to match the same route as /activevolumecalibration/webapp
     nginx.ingress.kubernetes.io/use-regex: "true"
   hosts:
     - host: localhost
       paths:
-        # Regex pattern matches /activevolumecalibration/api or /ActiveVolumeCalibration/api, etc.
-        - path: /(?i)activevolumecalibration/api
+        # Regex pattern matches /activevolumecalibration/webapp or /ActiveVolumeCalibration/webapp, etc.
+        - path: /(?i)activevolumecalibration/webapp
           pathType: ImplementationSpecific
     - host: dev.digiwells.no
       paths:
-        - path: /(?i)activevolumecalibration/api
+        - path: /(?i)activevolumecalibration/webapp
           pathType: ImplementationSpecific
     - host: app.digiwells.no
       paths:
-        - path: /(?i)activevolumecalibration/api
+        - path: /(?i)activevolumecalibration/webapp
           pathType: ImplementationSpecific
     - host: awe.web.intra.norceresearch.no
       paths:
-        - path: /(?i)activevolumecalibration/api
+        - path: /(?i)activevolumecalibration/webapp
           pathType: ImplementationSpecific
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

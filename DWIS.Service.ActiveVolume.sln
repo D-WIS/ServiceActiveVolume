@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36414.22
@@ -21,9 +21,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DWIS.Service.ActiveVolume.M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DWIS.Service.ActiveVolume.CalibrationService", "DWIS.Service.ActiveVolume.CalibrationService\DWIS.Service.ActiveVolume.CalibrationService.csproj", "{7CE76E65-7338-408B-985F-E00496D9B94A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DWIS.Service.ActiveVolume.WebPages", "DWIS.Service.ActiveVolume.WebPages\DWIS.Service.ActiveVolume.WebPages.csproj", "{E44149D0-36F8-483C-A7D7-49488ED5D255}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DWIS.Service.ActiveVolume.CalibrationWebPages", "DWIS.Service.ActiveVolume.CalibrationWebPages\DWIS.Service.ActiveVolume.CalibrationWebPages.csproj", "{E44149D0-36F8-483C-A7D7-49488ED5D255}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DWIS.Service.ActiveVolume.WebApp", "DWIS.Service.ActiveVolume.WebApp\DWIS.Service.ActiveVolume.WebApp.csproj", "{7ADDE936-5E1E-4074-8B9C-2AE5517D4EB5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DWIS.Service.ActiveVolume.CalibrationWebApp", "DWIS.Service.ActiveVolume.CalibrationWebApp\DWIS.Service.ActiveVolume.CalibrationWebApp.csproj", "{7ADDE936-5E1E-4074-8B9C-2AE5517D4EB5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DWIS.Service.ActiveVolume.ModelSharedOut", "DWIS.Service.ActiveVolume.ModelSharedOut\DWIS.Service.ActiveVolume.ModelSharedOut.csproj", "{4ACC6EE8-62E9-4200-BD1F-5C7B26535DCD}"
 EndProject

@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <AssemblyName>DWIS.Service.ActiveVolume.CalibrationWebPages</AssemblyName>
+    <RootNamespace>DWIS.Service.ActiveVolume.CalibrationWebPages</RootNamespace>
+    <PackageId>DWIS.Service.ActiveVolume.CalibrationWebPages</PackageId>
+    <Title>DWIS.Service.ActiveVolume.CalibrationWebPages</Title>
+    <Authors>NORCE</Authors>
+    <Company>NORCE</Company>
+    <Description>Reusable Razor class library containing ActiveVolume calibration pages and related API helpers.</Description>
+    <PackageTags>activevolume;drilling;blazor;razor;dwis</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/NORCE-DrillingAndWells/ServiceActiveVolume</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/NORCE-DrillingAndWells/ServiceActiveVolume</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\DWIS.Service.ActiveVolume.Model\Case\*.cs" Link="Model\Case\%(Filename)%(Extension)" />
+    <Compile Include="..\DWIS.Service.ActiveVolume.Model\Calibration\*.cs" Link="Model\Calibration\%(Filename)%(Extension)" />
+    <Compile Include="..\DWIS.Service.ActiveVolume.Model\Import\*.cs" Link="Model\Import\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

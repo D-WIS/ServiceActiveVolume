@@ -17,8 +17,8 @@ All internal engineering values are represented in SI units. Imported spatial/co
 | `DWIS.Service.ActiveVolume.Model` | Shared domain model, DTOs, calibration records, import definitions, online fusion engine, and geometry calculators. |
 | `DWIS.Service.ActiveVolume.Server` | Realtime online worker connected to the DWIS blackboard and the CalibrationService. |
 | `DWIS.Service.ActiveVolume.CalibrationService` | ASP.NET Core REST API backed by SQLite for cases, chunks, batch imports, jobs, and calibration records. |
-| `DWIS.Service.ActiveVolume.WebPages` | Reusable Razor class library with ActiveVolume pages and API helpers; packaged as a NuGet. |
-| `DWIS.Service.ActiveVolume.WebApp` | Thin Blazor Server host for the reusable WebPages library. |
+| `DWIS.Service.ActiveVolume.CalibrationWebPages` | Reusable Razor class library with ActiveVolume pages and API helpers; packaged as a NuGet. |
+| `DWIS.Service.ActiveVolume.CalibrationWebApp` | Thin Blazor Server host for the reusable CalibrationWebPages library. |
 | `DWIS.Service.ActiveVolume.ModelSharedIn` | Generated merged OpenAPI client/DTO project for upstream context services used by the online server. |
 | `DWIS.Service.ActiveVolume.ModelSharedOut` | Generated merged OpenAPI client/DTO project for client applications. |
 | `DWIS.Service.ActiveVolume.DataSource` | Development worker that publishes synthetic ActiveVolume inputs to the blackboard. |
@@ -31,7 +31,7 @@ DataSource -> Blackboard -> Server -> Blackboard outputs
                          \-> local online spool -> CalibrationService -> SQLite
                                                        ^
                                                        |
-                                                  WebApp/WebPages
+                                                  CalibrationWebApp/WebPages
 ```
 
 The online server owns one active online case. It persists realtime samples to an append-only local spool before uploading chunks to the CalibrationService, which minimizes data loss across process restarts.
@@ -68,7 +68,7 @@ dotnet run --project DWIS.Service.ActiveVolume.CalibrationService/DWIS.Service.A
 Start the WebApp:
 
 ```bash
-dotnet run --project DWIS.Service.ActiveVolume.WebApp/DWIS.Service.ActiveVolume.WebApp.csproj
+dotnet run --project DWIS.Service.ActiveVolume.CalibrationWebApp/DWIS.Service.ActiveVolume.CalibrationWebApp.csproj
 ```
 
 Start the Blackboard development services in separate terminals:
@@ -85,7 +85,7 @@ Dockerfiles are provided for:
 
 - `DWIS.Service.ActiveVolume.Server`
 - `DWIS.Service.ActiveVolume.CalibrationService`
-- `DWIS.Service.ActiveVolume.WebApp`
+- `DWIS.Service.ActiveVolume.CalibrationWebApp`
 - `DWIS.Service.ActiveVolume.DataSource`
 - `DWIS.Service.ActiveVolume.DataSink`
 
@@ -95,33 +95,33 @@ The GitHub Actions Docker workflow publishes:
 
 - `digiwells/dwisserviceactivevolumeserver:stable`
 - `digiwells/norcedrillingactivevolumecalibrationservice:stable`
-- `digiwells/norcedrillingactivevolumewebappclient:stable`
+- `digiwells/norcedrillingactivevolumecalibrationwebappclient:stable`
 
 ## Kubernetes
 
 Helm charts are provided for the deployable REST API and WebApp:
 
 - `DWIS.Service.ActiveVolume.CalibrationService/charts/norcedrillingactivevolumecalibrationservice`
-- `DWIS.Service.ActiveVolume.WebApp/charts/norcedrillingactivevolumewebappclient`
+- `DWIS.Service.ActiveVolume.CalibrationWebApp/charts/norcedrillingactivevolumecalibrationwebappclient`
 
 Render them with:
 
 ```bash
 helm template activevolume-calibration DWIS.Service.ActiveVolume.CalibrationService/charts/norcedrillingactivevolumecalibrationservice
-helm template activevolume-webapp DWIS.Service.ActiveVolume.WebApp/charts/norcedrillingactivevolumewebappclient
+helm template activevolume-webapp DWIS.Service.ActiveVolume.CalibrationWebApp/charts/norcedrillingactivevolumecalibrationwebappclient
 ```
 
-The CalibrationService chart includes a persistent volume claim mounted at `/home` for SQLite storage. The WebApp chart exposes endpoint URLs through chart values under `env`.
+The CalibrationService chart includes a persistent volume claim mounted at `/home` for SQLite storage. The CalibrationWebApp chart exposes endpoint URLs through chart values under `env`.
 
 ## Publishing
 
 GitHub Actions workflows are available for release artifacts:
 
 - `.github/workflows/docker-build-push.yml`
-  - Builds and pushes the Server, CalibrationService, and WebApp Docker images to DockerHub.
+  - Builds and pushes the Server, CalibrationService, and CalibrationWebApp Docker images to DockerHub.
   - Requires repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_PASSWORD`.
 - `.github/workflows/publish-webpages-nuget.yml`
-  - Packs `DWIS.Service.ActiveVolume.WebPages` and publishes it to NuGet.org.
+  - Packs `DWIS.Service.ActiveVolume.CalibrationWebPages` and publishes it to NuGet.org.
   - Requires repository secret `NUGET_API_KEY`.
   - Can be run manually with a version input or by pushing a tag like `webpages-v1.0.0`.
 

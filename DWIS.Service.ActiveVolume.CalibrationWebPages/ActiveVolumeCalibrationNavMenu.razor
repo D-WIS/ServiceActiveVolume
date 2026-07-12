@@ -1,0 +1,20 @@
+@inject IActiveVolumeCalibrationWebPagesConfiguration Configuration
+
+<nav class="activevolumecalibration-nav">
+    <a href="/activevolumecalibration/webapp">Home</a>
+    <a href="/activevolumecalibration/webapp/activevolumecalibration/cases">Active Volume Cases</a>
+    <a href="/activevolumecalibration/webapp/activevolumecalibration/batch-imports">Batch Imports</a>
+    <a href="/activevolumecalibration/webapp/activevolumecalibration/calibrations">Calibrations</a>
+    <a href="/activevolumecalibration/webapp/activevolumecalibration/online">Online Cases</a>
+    <a href="/activevolumecalibration/webapp/activevolumecalibration/jobs">Jobs / Processing</a>
+    <div class="activevolumecalibration-nav-group">Context</div>
+    <a href="@Configuration.FieldHostURL">Field</a>
+    <a href="@Configuration.ClusterHostURL">Cluster</a>
+    <a href="@Configuration.WellHostURL">Well</a>
+    <a href="@Configuration.WellBoreHostURL">WellBore</a>
+    <a href="@Configuration.WellBoreArchitectureHostURL">WellBore Architecture</a>
+    <a href="@Configuration.DrillStringHostURL">Drill String</a>
+    <div class="activevolumecalibration-nav-group">Calculators</div>
+    <a href="@Configuration.UnitConversionHostURL">Unit Conversion</a>
+    <a href="@Configuration.VerticalDepthHostURL">Vertical Depth</a>
+</nav>

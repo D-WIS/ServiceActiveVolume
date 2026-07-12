@@ -40,7 +40,7 @@ The main configuration sections are `ModelServices` and `ActiveVolumeOnline`.
     "DrillString": "http://localhost:5000/DrillString/api/"
   },
   "ActiveVolumeOnline": {
-    "CalibrationServiceUrl": "http://localhost:5000/activevolume/api/",
+    "CalibrationServiceUrl": "http://localhost:5000/activevolumecalibration/api/",
     "SpoolDirectory": "/home/activevolume-online",
     "ChunkSize": 600,
     "ChunkFlushInterval": "00:01:00",
@@ -55,7 +55,7 @@ Environment variables use the standard .NET double-underscore form, for example:
 
 ```text
 ModelServices__Field=http://field/api/
-ActiveVolumeOnline__CalibrationServiceUrl=http://calibration/activevolume/api/
+ActiveVolumeOnline__CalibrationServiceUrl=http://calibration/activevolumecalibration/api/
 ```
 
 ## Input Signals

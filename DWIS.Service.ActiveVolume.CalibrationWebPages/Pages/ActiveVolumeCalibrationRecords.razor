@@ -1,0 +1,48 @@
+@page "/activevolumecalibration/calibrations"
+@inject IActiveVolumeCalibrationAPIUtils Api
+
+<h1>Calibrations</h1>
+
+@if (calibrations_ is null)
+{
+    <p>Loading...</p>
+}
+else if (calibrations_.Count == 0)
+{
+    <p>No calibration records are available yet.</p>
+}
+else
+{
+    <table class="activevolumecalibration-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Quality</th>
+                <th>Mode</th>
+                <th>Created</th>
+                <th>Components</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in calibrations_)
+            {
+                <tr>
+                    <td>@item.ID</td>
+                    <td>@item.Quality.ToString("F3")</td>
+                    <td>@item.Context.ReturnFlowMeasurementMode</td>
+                    <td>@item.CreationDate.ToString("u")</td>
+                    <td>@item.Components.Count</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<CalibrationRecord>? calibrations_;
+
+    protected override async Task OnInitializedAsync()
+    {
+        calibrations_ = await Api.GetCalibrationsAsync();
+    }
+}

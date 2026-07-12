@@ -6,7 +6,7 @@ namespace DWIS.Service.ActiveVolume.Server
     {
         public const string SectionName = "ActiveVolumeOnline";
 
-        public string CalibrationServiceUrl { get; set; } = "http://localhost:5000/activevolume/api/";
+        public string CalibrationServiceUrl { get; set; } = "http://localhost:5000/activevolumecalibration/api/";
         public string SpoolDirectory { get; set; } = "/home/activevolume-online";
         public int ChunkSize { get; set; } = 600;
         public TimeSpan ChunkFlushInterval { get; set; } = TimeSpan.FromMinutes(1);

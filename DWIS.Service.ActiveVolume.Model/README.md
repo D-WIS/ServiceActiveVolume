@@ -51,4 +51,4 @@ dotnet build DWIS.Service.ActiveVolume.Model/DWIS.Service.ActiveVolume.Model.csp
 - `DWIS.Service.ActiveVolume.CalibrationService`
 - `DWIS.Service.ActiveVolume.DataSource`
 - `DWIS.Service.ActiveVolume.DataSink`
-- `DWIS.Service.ActiveVolume.WebPages` through linked DTO source files for NuGet packaging
+- `DWIS.Service.ActiveVolume.CalibrationWebPages` through linked DTO source files for NuGet packaging

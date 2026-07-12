@@ -1,4 +1,4 @@
-name: Publish WebPages NuGet
+name: Publish CalibrationWebPages NuGet
 
 on:
   workflow_dispatch:
@@ -44,13 +44,13 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Restore
-        run: dotnet restore DWIS.Service.ActiveVolume.WebPages/DWIS.Service.ActiveVolume.WebPages.csproj
+        run: dotnet restore DWIS.Service.ActiveVolume.CalibrationWebPages/DWIS.Service.ActiveVolume.CalibrationWebPages.csproj
 
       - name: Build
-        run: dotnet build DWIS.Service.ActiveVolume.WebPages/DWIS.Service.ActiveVolume.WebPages.csproj --configuration Release --no-restore
+        run: dotnet build DWIS.Service.ActiveVolume.CalibrationWebPages/DWIS.Service.ActiveVolume.CalibrationWebPages.csproj --configuration Release --no-restore
 
       - name: Pack
-        run: dotnet pack DWIS.Service.ActiveVolume.WebPages/DWIS.Service.ActiveVolume.WebPages.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.version.outputs.version }} --output ${{ github.workspace }}/artifacts
+        run: dotnet pack DWIS.Service.ActiveVolume.CalibrationWebPages/DWIS.Service.ActiveVolume.CalibrationWebPages.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.version.outputs.version }} --output ${{ github.workspace }}/artifacts
 
       - name: Push to NuGet.org
-        run: dotnet nuget push "${{ github.workspace }}/artifacts/DWIS.Service.ActiveVolume.WebPages.${{ steps.version.outputs.version }}.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push "${{ github.workspace }}/artifacts/DWIS.Service.ActiveVolume.CalibrationWebPages.${{ steps.version.outputs.version }}.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
