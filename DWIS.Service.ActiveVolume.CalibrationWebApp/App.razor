@@ -1,4 +1,5 @@
-<Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="@AdditionalAssemblies">
+<Router AppAssembly="@typeof(App).Assembly"
+        AdditionalAssemblies="@ExternalRazorAssemblies.All">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(Shared.MainLayout)" />
     </Found>
@@ -8,10 +9,3 @@
         </LayoutView>
     </NotFound>
 </Router>
-
-@code {
-    private static readonly System.Reflection.Assembly[] AdditionalAssemblies =
-    [
-        typeof(DWIS.Service.ActiveVolume.CalibrationWebPages.ActiveVolumeCalibrationNavMenu).Assembly
-    ];
-}

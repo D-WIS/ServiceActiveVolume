@@ -1,8 +1,11 @@
+using DWIS.Service.ActiveVolume.CalibrationWebApp;
 using DWIS.Service.ActiveVolume.CalibrationWebPages;
+using MudBlazor;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-ActiveVolumeCalibrationWebPagesConfiguration webPagesConfiguration = new()
+WebPagesHostConfiguration webPagesConfiguration = new()
 {
     ActiveVolumeCalibrationHostURL = builder.Configuration["ActiveVolumeCalibrationHostURL"] ?? "http://localhost:5000/",
     FieldHostURL = builder.Configuration["FieldHostURL"] ?? string.Empty,
@@ -12,12 +15,29 @@ ActiveVolumeCalibrationWebPagesConfiguration webPagesConfiguration = new()
     WellBoreArchitectureHostURL = builder.Configuration["WellBoreArchitectureHostURL"] ?? string.Empty,
     DrillStringHostURL = builder.Configuration["DrillStringHostURL"] ?? string.Empty,
     UnitConversionHostURL = builder.Configuration["UnitConversionHostURL"] ?? string.Empty,
-    VerticalDepthHostURL = builder.Configuration["VerticalDepthHostURL"] ?? string.Empty
+    RigHostURL = builder.Configuration["RigHostURL"] ?? string.Empty,
+    TrajectoryHostURL = builder.Configuration["TrajectoryHostURL"] ?? string.Empty,
+    CartographicProjectionHostURL = builder.Configuration["CartographicProjectionHostURL"] ?? string.Empty,
+    VerticalDatumHostURL = builder.Configuration["VerticalDatumHostURL"] ?? string.Empty
 };
+
+OSDC.UnitConversion.WebPages.Configuration.UnitConversionHostURL = webPagesConfiguration.UnitConversionHostURL;
 
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddActiveVolumeCalibrationWebPages(webPagesConfiguration);
+builder.Services.AddExternalWebPages(webPagesConfiguration);
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
+    config.SnackbarConfiguration.PreventDuplicates = false;
+    config.SnackbarConfiguration.NewestOnTop = false;
+    config.SnackbarConfiguration.ShowCloseIcon = true;
+    config.SnackbarConfiguration.VisibleStateDuration = 5000;
+    config.SnackbarConfiguration.HideTransitionDuration = 500;
+    config.SnackbarConfiguration.ShowTransitionDuration = 500;
+    config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+});
 
 var app = builder.Build();
 

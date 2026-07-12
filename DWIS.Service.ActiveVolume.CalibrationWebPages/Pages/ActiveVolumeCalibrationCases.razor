@@ -1,50 +1,315 @@
 @page "/activevolumecalibration/cases"
 @inject IActiveVolumeCalibrationAPIUtils Api
+@inject ISnackbar Snackbar
 
-<h1>Active Volume Cases</h1>
+@if (!isEditing_)
+{
+    <MudStack Spacing="3">
+        <MudStack Row AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h5">Active Volume Cases</MudText>
+            <MudSpacer />
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ReloadCasesAsync">Refresh</MudButton>
+        </MudStack>
 
-@if (cases_ is null)
-{
-    <p>Loading...</p>
-}
-else if (cases_.Count == 0)
-{
-    <p>No cases have been stored yet.</p>
+        @if (cases_ is null)
+        {
+            <MudProgressLinear Indeterminate="true" />
+        }
+        else
+        {
+            <MudTable Items="@cases_" T="ActiveVolumeCaseLight" Hover="true" Dense="true" Bordered="true" OnRowClick="OnCaseRowClicked">
+                <HeaderContent>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh>Progress</MudTh>
+                    <MudTh>Chunks</MudTh>
+                    <MudTh>Samples</MudTh>
+                    <MudTh>Return Flow</MudTh>
+                    <MudTh>Calibration</MudTh>
+                    <MudTh>Last Updated</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Name">@context.Name</MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudText Color="@GetProcessingColor(context.ProcessingState)">@context.ProcessingState</MudText>
+                        @if (!string.IsNullOrWhiteSpace(context.ProcessingMessage))
+                        {
+                            <MudText Typo="Typo.caption">@context.ProcessingMessage</MudText>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Progress">
+                        <MudProgressLinear Value="@ToPercent(context.ProcessingProgress)" Color="@GetProcessingProgressColor(context.ProcessingState)" />
+                        <MudText Typo="Typo.caption">@FormatPercent(context.ProcessingProgress)</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Chunks">@context.ChunkCount</MudTd>
+                    <MudTd DataLabel="Samples">@context.SampleCount</MudTd>
+                    <MudTd DataLabel="Return Flow">@context.ReturnFlowMeasurementMode</MudTd>
+                    <MudTd DataLabel="Calibration">@FormatCalibrationSummary(context)</MudTd>
+                    <MudTd DataLabel="Last Updated">@FormatDate(context.LastModificationDate)</MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText>No cases have been stored yet.</MudText>
+                </NoRecordsContent>
+            </MudTable>
+        }
+    </MudStack>
 }
 else
 {
-    <table class="activevolumecalibration-table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>State</th>
-                <th>Progress</th>
-                <th>Chunks</th>
-                <th>Samples</th>
-                <th>Return flow</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in cases_)
-            {
-                <tr>
-                    <td>@item.Name</td>
-                    <td>@item.ProcessingState</td>
-                    <td>@item.ProcessingProgress.ToString("P0")</td>
-                    <td>@item.ChunkCount</td>
-                    <td>@item.SampleCount</td>
-                    <td>@item.ReturnFlowMeasurementMode</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <MudStack Spacing="3">
+        <MudStack Row AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h5">Edit Active Volume Case</MudText>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="SaveCaseAsync" Disabled="@(currentCase_ is null || isBusy_)">Save</MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ProcessCaseAsync" Disabled="@(currentCase_ is null || isBusy_)">Process</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditorAsync">Close</MudButton>
+        </MudStack>
+
+        @if (selectedCaseLight_ is not null)
+        {
+            <MudPaper Class="pa-3" Elevation="1">
+                <MudGrid>
+                    <MudItem xs="12" md="3">
+                        <MudText Typo="Typo.caption">Status</MudText>
+                        <MudText Color="@GetProcessingColor(selectedCaseLight_.ProcessingState)">@selectedCaseLight_.ProcessingState</MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="5">
+                        <MudText Typo="Typo.caption">Processing</MudText>
+                        <MudProgressLinear Value="@ToPercent(selectedCaseLight_.ProcessingProgress)" Color="@GetProcessingProgressColor(selectedCaseLight_.ProcessingState)" />
+                        <MudText Typo="Typo.caption">@selectedCaseLight_.ProcessingMessage</MudText>
+                    </MudItem>
+                    <MudItem xs="6" md="2">
+                        <MudText Typo="Typo.caption">Chunks</MudText>
+                        <MudText>@selectedCaseLight_.ChunkCount</MudText>
+                    </MudItem>
+                    <MudItem xs="6" md="2">
+                        <MudText Typo="Typo.caption">Samples</MudText>
+                        <MudText>@selectedCaseLight_.SampleCount</MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        }
+
+        @if (isLoadingCase_)
+        {
+            <MudProgressLinear Indeterminate="true" />
+        }
+        else if (currentCase_ is not null)
+        {
+            <MudPaper Class="pa-4" Elevation="1">
+                <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="currentCase_.Name" Label="Name" Required="true" ShrinkLabel />
+                    </MudItem>
+                    <MudItem xs="12" md="8">
+                        <MudTextField @bind-Value="currentCase_.Description" Label="Description" ShrinkLabel />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudSelect T="ReturnFlowMeasurementMode" Label="Return flow measurement" @bind-Value="currentCase_.ReturnFlowMeasurementMode" ShrinkLabel>
+                            @foreach (ReturnFlowMeasurementMode mode in Enum.GetValues<ReturnFlowMeasurementMode>())
+                            {
+                                <MudSelectItem T="ReturnFlowMeasurementMode" Value="@mode">@mode</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudTextField @bind-Value="currentCase_.RigName" Label="Rig" ShrinkLabel />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudTextField @bind-Value="currentCase_.MudSystem" Label="Mud system" ShrinkLabel />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudTextField @bind-Value="currentCase_.HoleSection" Label="Hole section" ShrinkLabel />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudTextField Value="@FormatGuid(currentCase_.FieldID)" Label="Field ID" ReadOnly="true" ShrinkLabel />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudTextField Value="@FormatGuid(currentCase_.ClusterID)" Label="Cluster ID" ReadOnly="true" ShrinkLabel />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudTextField Value="@FormatGuid(currentCase_.WellID)" Label="Well ID" ReadOnly="true" ShrinkLabel />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudTextField Value="@FormatGuid(currentCase_.WellBoreID)" Label="WellBore ID" ReadOnly="true" ShrinkLabel />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField Value="@FormatGuid(currentCase_.WellBoreArchitectureID)" Label="WellBore Architecture ID" ReadOnly="true" ShrinkLabel />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField Value="@FormatGuid(currentCase_.DrillStringID)" Label="Drill String ID" ReadOnly="true" ShrinkLabel />
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            <MudPaper Class="pa-4" Elevation="1">
+                <MudText Typo="Typo.h6">Calibration Result</MudText>
+                @if (currentCase_.BestCalibrationID is null)
+                {
+                    <MudText>No calibration result has been associated with this case yet.</MudText>
+                }
+                else if (isLoadingCalibration_)
+                {
+                    <MudProgressLinear Indeterminate="true" />
+                }
+                else if (selectedCalibration_ is null)
+                {
+                    <MudText>Calibration @currentCase_.BestCalibrationID could not be loaded.</MudText>
+                }
+                else
+                {
+                    <MudGrid>
+                        <MudItem xs="12" md="3">
+                            <MudText Typo="Typo.caption">Quality</MudText>
+                            <MudText>@selectedCalibration_.Quality.ToString("F3")</MudText>
+                        </MudItem>
+                        <MudItem xs="12" md="3">
+                            <MudText Typo="Typo.caption">Created</MudText>
+                            <MudText>@FormatDate(selectedCalibration_.CreationDate)</MudText>
+                        </MudItem>
+                        <MudItem xs="12" md="3">
+                            <MudText Typo="Typo.caption">Components</MudText>
+                            <MudText>@selectedCalibration_.Components.Count</MudText>
+                        </MudItem>
+                        <MudItem xs="12" md="3">
+                            <MudText Typo="Typo.caption">Model</MudText>
+                            <MudText>@selectedCalibration_.ModelVersion</MudText>
+                        </MudItem>
+                    </MudGrid>
+                    <MudTable Items="@selectedCalibration_.Components" T="CalibrationParameterSet" Dense="true" Hover="true" Class="mt-3">
+                        <HeaderContent>
+                            <MudTh>Component</MudTh>
+                            <MudTh>Quality</MudTh>
+                            <MudTh>Parameters</MudTh>
+                            <MudTh>Message</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@context.Component</MudTd>
+                            <MudTd>@context.Quality.ToString("F3")</MudTd>
+                            <MudTd>@context.Parameters.Count</MudTd>
+                            <MudTd>@context.Message</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudPaper>
+        }
+    </MudStack>
 }
 
 @code {
     private List<ActiveVolumeCaseLight>? cases_;
+    private ActiveVolumeCaseLight? selectedCaseLight_;
+    private ActiveVolumeCase? currentCase_;
+    private CalibrationRecord? selectedCalibration_;
+    private bool isEditing_;
+    private bool isLoadingCase_;
+    private bool isLoadingCalibration_;
+    private bool isBusy_;
 
     protected override async Task OnInitializedAsync()
     {
+        await ReloadCasesAsync();
+    }
+
+    private async Task ReloadCasesAsync()
+    {
         cases_ = await Api.GetCasesAsync();
     }
+
+    private async Task OnCaseRowClicked(TableRowClickEventArgs<ActiveVolumeCaseLight> args)
+    {
+        if (args.Item is null)
+        {
+            return;
+        }
+
+        ActiveVolumeCaseLight selectedCase = args.Item;
+        selectedCaseLight_ = selectedCase;
+        isEditing_ = true;
+        isLoadingCase_ = true;
+        selectedCalibration_ = null;
+        currentCase_ = null;
+
+        currentCase_ = await Api.GetCaseAsync(selectedCase.ID, includeChunks: false);
+        isLoadingCase_ = false;
+
+        if (currentCase_?.BestCalibrationID is Guid calibrationId)
+        {
+            isLoadingCalibration_ = true;
+            selectedCalibration_ = await Api.GetCalibrationAsync(calibrationId);
+            isLoadingCalibration_ = false;
+        }
+    }
+
+    private async Task SaveCaseAsync()
+    {
+        if (currentCase_ is null)
+        {
+            return;
+        }
+
+        isBusy_ = true;
+        currentCase_.LastModificationDate = DateTimeOffset.UtcNow;
+        bool saved = await Api.SaveCaseAsync(currentCase_);
+        isBusy_ = false;
+        Snackbar.Add(saved ? "Active volume case saved." : "Could not save active volume case.", saved ? Severity.Success : Severity.Error);
+        await ReloadCasesAsync();
+    }
+
+    private async Task ProcessCaseAsync()
+    {
+        if (currentCase_ is null)
+        {
+            return;
+        }
+
+        isBusy_ = true;
+        Guid? jobId = await Api.ProcessCaseAsync(currentCase_.ID);
+        isBusy_ = false;
+        Snackbar.Add(jobId.HasValue ? "Calibration processing queued." : "Could not queue calibration processing.", jobId.HasValue ? Severity.Success : Severity.Error);
+        await ReloadCasesAsync();
+        selectedCaseLight_ = cases_?.FirstOrDefault(item => item.ID == currentCase_.ID) ?? selectedCaseLight_;
+    }
+
+    private async Task CloseEditorAsync()
+    {
+        isEditing_ = false;
+        currentCase_ = null;
+        selectedCaseLight_ = null;
+        selectedCalibration_ = null;
+        await ReloadCasesAsync();
+    }
+
+    private static string FormatDate(DateTimeOffset value) => value.ToString("u");
+
+    private static string FormatGuid(Guid value) => value == Guid.Empty ? string.Empty : value.ToString();
+
+    private static double ToPercent(double progress) => Math.Clamp(progress, 0.0, 1.0) * 100.0;
+
+    private static string FormatPercent(double progress) => $"{ToPercent(progress):F0}%";
+
+    private static string FormatCalibrationSummary(ActiveVolumeCaseLight item)
+    {
+        if (item.BestCalibrationID is null)
+        {
+            return string.Empty;
+        }
+
+        return item.CalibrationQuality is double quality ? $"{quality:F3}" : "Available";
+    }
+
+    private static Color GetProcessingColor(ActiveVolumeCaseProcessingState state) => state switch
+    {
+        ActiveVolumeCaseProcessingState.Processed => Color.Success,
+        ActiveVolumeCaseProcessingState.Failed or ActiveVolumeCaseProcessingState.Interrupted => Color.Error,
+        ActiveVolumeCaseProcessingState.Queued or ActiveVolumeCaseProcessingState.Processing or ActiveVolumeCaseProcessingState.Uploading => Color.Info,
+        _ => Color.Default
+    };
+
+    private static Color GetProcessingProgressColor(ActiveVolumeCaseProcessingState state) => state switch
+    {
+        ActiveVolumeCaseProcessingState.Processed => Color.Success,
+        ActiveVolumeCaseProcessingState.Failed or ActiveVolumeCaseProcessingState.Interrupted => Color.Error,
+        _ => Color.Info
+    };
 }

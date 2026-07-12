@@ -6,9 +6,8 @@ It is intentionally separated from the host CalibrationWebApp so the pages can b
 
 ## Contents
 
-- `Pages/ActiveVolumeCalibrationCases.razor`: lists light case records from the CalibrationService.
-- `Pages/ActiveVolumeCalibrationBatchImports.razor`: lists batch import definitions.
-- `Pages/ActiveVolumeCalibrationRecords.razor`: lists stored calibration records.
+- `Pages/ActiveVolumeCalibrationCases.razor`: lists light case records from the CalibrationService and loads the heavy case only when a row is selected.
+- `Pages/ActiveVolumeCalibrationBatchImports.razor`: lists light batch import records and loads the heavy batch import only when a row is selected.
 - `ActiveVolumeCalibrationNavMenu.razor`: left-side navigation with ActiveVolume, context data, and calculator links.
 - `ActiveVolumeCalibrationAPIUtils.cs`: HTTP helper for CalibrationService API calls.
 - `ActiveVolumeCalibrationWebPagesConfiguration.cs`: endpoint configuration for the pages.
@@ -28,10 +27,11 @@ The configuration includes:
 - `WellBoreArchitectureHostURL`
 - `DrillStringHostURL`
 - `UnitConversionHostURL`
-- `VerticalDepthHostURL`
+- `VerticalDatumHostURL`
 
-The `*HostURL` values are service roots for server-side API clients. Browser navigation uses fixed public web app
-route paths in `ActiveVolumeCalibrationNavMenu.razor`, following the pattern used by the contextual-data web apps.
+The `*HostURL` values are service roots for server-side API clients. Browser navigation points to routes hosted by
+the consuming web app; in `CalibrationWebApp`, those context and calculator routes are provided by the respective
+NuGet web page packages.
 
 ## Routes
 
@@ -39,9 +39,10 @@ The library currently contributes:
 
 - `/activevolumecalibration/cases`
 - `/activevolumecalibration/batch-imports`
-- `/activevolumecalibration/calibrations`
 
-The navigation menu also includes placeholders or links for online cases, jobs, contextual data pages, unit conversion, and vertical depth calculators.
+Case and batch import tables use light objects for listing and show processing progress directly in the table. Detail/edit mode downloads the heavy object from the CalibrationService. Calibration results are displayed from the selected case instead of through a separate calibration page.
+
+The navigation menu also includes contextual data pages, unit conversion, and vertical datum/depth calculators supplied by the consuming web app through external web page packages.
 
 ## Build
 

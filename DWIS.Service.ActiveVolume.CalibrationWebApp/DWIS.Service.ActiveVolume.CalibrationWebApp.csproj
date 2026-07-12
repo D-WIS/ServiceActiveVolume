@@ -11,6 +11,15 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
+    <PackageReference Include="MudBlazor" Version="8.14.0" />
+    <PackageReference Include="NORCE.Drilling.Cluster.WebPages" Version="1.0.11" />
+    <PackageReference Include="NORCE.Drilling.DrillString.WebPages" Version="1.0.2" />
+    <PackageReference Include="NORCE.Drilling.Field.WebPages" Version="1.0.14" />
+    <PackageReference Include="NORCE.Drilling.VerticalDatum.WebPage" Version="1.0.2" />
+    <PackageReference Include="NORCE.Drilling.Well.WebPages" Version="1.0.11" />
+    <PackageReference Include="NORCE.Drilling.WellBore.WebPages" Version="1.0.12" />
+    <PackageReference Include="NORCE.Drilling.WellBoreArchitecture.WebPages" Version="1.0.5" />
+    <PackageReference Include="OSDC.UnitConversion.WebPages" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>

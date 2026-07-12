@@ -9,8 +9,13 @@ namespace DWIS.Service.ActiveVolume.CalibrationWebPages
     public interface IActiveVolumeCalibrationAPIUtils
     {
         Task<List<ActiveVolumeCaseLight>> GetCasesAsync(CancellationToken cancellationToken = default);
-        Task<List<CalibrationRecord>> GetCalibrationsAsync(CancellationToken cancellationToken = default);
-        Task<List<ActiveVolumeCaseBatchImport>> GetBatchImportsAsync(CancellationToken cancellationToken = default);
+        Task<ActiveVolumeCase?> GetCaseAsync(Guid id, bool includeChunks = false, CancellationToken cancellationToken = default);
+        Task<bool> SaveCaseAsync(ActiveVolumeCase activeCase, CancellationToken cancellationToken = default);
+        Task<Guid?> ProcessCaseAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<CalibrationRecord?> GetCalibrationAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<List<ActiveVolumeCaseBatchImportLight>> GetBatchImportsAsync(CancellationToken cancellationToken = default);
+        Task<ActiveVolumeCaseBatchImport?> GetBatchImportAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<bool> SaveBatchImportAsync(ActiveVolumeCaseBatchImport batchImport, CancellationToken cancellationToken = default);
     }
 
     public sealed class ActiveVolumeCalibrationAPIUtils : IActiveVolumeCalibrationAPIUtils
@@ -31,14 +36,56 @@ namespace DWIS.Service.ActiveVolume.CalibrationWebPages
             return await GetAsync<List<ActiveVolumeCaseLight>>("ActiveVolumeCase/LightData", cancellationToken) ?? new List<ActiveVolumeCaseLight>();
         }
 
-        public async Task<List<CalibrationRecord>> GetCalibrationsAsync(CancellationToken cancellationToken = default)
+        public async Task<ActiveVolumeCase?> GetCaseAsync(Guid id, bool includeChunks = false, CancellationToken cancellationToken = default)
         {
-            return await GetAsync<List<CalibrationRecord>>("Calibration", cancellationToken) ?? new List<CalibrationRecord>();
+            return await GetAsync<ActiveVolumeCase>($"ActiveVolumeCase/{id}?includeChunks={includeChunks.ToString().ToLowerInvariant()}", cancellationToken);
         }
 
-        public async Task<List<ActiveVolumeCaseBatchImport>> GetBatchImportsAsync(CancellationToken cancellationToken = default)
+        public async Task<bool> SaveCaseAsync(ActiveVolumeCase activeCase, CancellationToken cancellationToken = default)
         {
-            return await GetAsync<List<ActiveVolumeCaseBatchImport>>("ActiveVolumeCaseBatchImport", cancellationToken) ?? new List<ActiveVolumeCaseBatchImport>();
+            bool isNew = activeCase.ID == Guid.Empty;
+            activeCase.ID = isNew ? Guid.NewGuid() : activeCase.ID;
+            HttpMethod method = isNew ? HttpMethod.Post : HttpMethod.Put;
+            string methodRelativeUrl = isNew ? "ActiveVolumeCase" : $"ActiveVolumeCase/{activeCase.ID}";
+            HttpResponseMessage? response = await SendJsonAsync(method, methodRelativeUrl, activeCase, cancellationToken);
+            return response?.IsSuccessStatusCode == true;
+        }
+
+        public async Task<Guid?> ProcessCaseAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            HttpResponseMessage? response = await PostAsync($"ActiveVolumeCase/{id}/Process", cancellationToken);
+            if (response?.IsSuccessStatusCode != true)
+            {
+                return null;
+            }
+
+            return await response.Content.ReadFromJsonAsync<Guid>(cancellationToken);
+        }
+
+        public async Task<CalibrationRecord?> GetCalibrationAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await GetAsync<CalibrationRecord>($"Calibration/{id}", cancellationToken);
+        }
+
+        public async Task<List<ActiveVolumeCaseBatchImportLight>> GetBatchImportsAsync(CancellationToken cancellationToken = default)
+        {
+            return await GetAsync<List<ActiveVolumeCaseBatchImportLight>>("ActiveVolumeCaseBatchImport/LightData", cancellationToken) ?? new List<ActiveVolumeCaseBatchImportLight>();
+        }
+
+        public async Task<ActiveVolumeCaseBatchImport?> GetBatchImportAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await GetAsync<ActiveVolumeCaseBatchImport>($"ActiveVolumeCaseBatchImport/{id}", cancellationToken);
+        }
+
+        public async Task<bool> SaveBatchImportAsync(ActiveVolumeCaseBatchImport batchImport, CancellationToken cancellationToken = default)
+        {
+            if (batchImport.ID == Guid.Empty)
+            {
+                batchImport.ID = Guid.NewGuid();
+            }
+
+            HttpResponseMessage? response = await SendJsonAsync(HttpMethod.Post, "ActiveVolumeCaseBatchImport", batchImport, cancellationToken);
+            return response?.IsSuccessStatusCode == true;
         }
 
         private async Task<T?> GetAsync<T>(string relativeUrl, CancellationToken cancellationToken)
@@ -66,6 +113,57 @@ namespace DWIS.Service.ActiveVolume.CalibrationWebPages
             {
                 return default;
             }
+        }
+
+        private async Task<HttpResponseMessage?> SendJsonAsync<T>(HttpMethod method, string relativeUrl, T value, CancellationToken cancellationToken)
+        {
+            string? absoluteUrl = BuildAbsoluteUrl(relativeUrl);
+            if (absoluteUrl is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                using HttpRequestMessage request = new(method, absoluteUrl)
+                {
+                    Content = JsonContent.Create(value)
+                };
+                return await httpClient_.SendAsync(request, cancellationToken);
+            }
+            catch (HttpRequestException)
+            {
+                return null;
+            }
+        }
+
+        private async Task<HttpResponseMessage?> PostAsync(string relativeUrl, CancellationToken cancellationToken)
+        {
+            string? absoluteUrl = BuildAbsoluteUrl(relativeUrl);
+            if (absoluteUrl is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return await httpClient_.PostAsync(absoluteUrl, content: null, cancellationToken);
+            }
+            catch (HttpRequestException)
+            {
+                return null;
+            }
+        }
+
+        private string? BuildAbsoluteUrl(string relativeUrl)
+        {
+            string hostUrl = configuration_.ActiveVolumeCalibrationHostURL.TrimEnd('/');
+            if (string.IsNullOrWhiteSpace(hostUrl))
+            {
+                return null;
+            }
+
+            return $"{BuildCalibrationApiBaseUrl(hostUrl)}/{relativeUrl}";
         }
 
         private static string BuildCalibrationApiBaseUrl(string hostUrl)

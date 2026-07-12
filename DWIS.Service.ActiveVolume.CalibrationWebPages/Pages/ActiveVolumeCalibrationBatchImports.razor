@@ -1,46 +1,221 @@
 @page "/activevolumecalibration/batch-imports"
 @inject IActiveVolumeCalibrationAPIUtils Api
+@inject ISnackbar Snackbar
 
-<h1>Batch Imports</h1>
+@if (!isEditing_)
+{
+    <MudStack Spacing="3">
+        <MudStack Row AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h5">Batch Imports</MudText>
+            <MudSpacer />
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ReloadBatchImportsAsync">Refresh</MudButton>
+        </MudStack>
 
-@if (batchImports_ is null)
-{
-    <p>Loading...</p>
-}
-else if (batchImports_.Count == 0)
-{
-    <p>No batch imports have been created yet.</p>
+        @if (batchImports_ is null)
+        {
+            <MudProgressLinear Indeterminate="true" />
+        }
+        else
+        {
+            <MudTable Items="@batchImports_" T="ActiveVolumeCaseBatchImportLight" Hover="true" Dense="true" Bordered="true" OnRowClick="OnBatchImportRowClicked">
+                <HeaderContent>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh>Progress</MudTh>
+                    <MudTh>Items</MudTh>
+                    <MudTh>Created Cases</MudTh>
+                    <MudTh>Created</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Name">@context.Name</MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudText Color="@GetProcessingColor(context.ProcessingState)">@context.ProcessingState</MudText>
+                        @if (!string.IsNullOrWhiteSpace(context.ProcessingMessage))
+                        {
+                            <MudText Typo="Typo.caption">@context.ProcessingMessage</MudText>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Progress">
+                        <MudProgressLinear Value="@ToPercent(context.ProcessingProgress)" Color="@GetProcessingProgressColor(context.ProcessingState)" />
+                        <MudText Typo="Typo.caption">@FormatPercent(context.ProcessingProgress)</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Items">@context.ItemCount</MudTd>
+                    <MudTd DataLabel="Created Cases">@context.CreatedCaseCount</MudTd>
+                    <MudTd DataLabel="Created">@FormatDate(context.CreationDate)</MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText>No batch imports have been created yet.</MudText>
+                </NoRecordsContent>
+            </MudTable>
+        }
+    </MudStack>
 }
 else
 {
-    <table class="activevolumecalibration-table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>State</th>
-                <th>Progress</th>
-                <th>Items</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in batchImports_)
-            {
-                <tr>
-                    <td>@item.Name</td>
-                    <td>@item.ProcessingState</td>
-                    <td>@item.ProcessingProgress.ToString("P0")</td>
-                    <td>@item.Items.Count</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <MudStack Spacing="3">
+        <MudStack Row AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h5">Edit Batch Import</MudText>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="SaveBatchImportAsync" Disabled="@(currentBatchImport_ is null || isBusy_)">Save</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditorAsync">Close</MudButton>
+        </MudStack>
+
+        @if (selectedBatchImportLight_ is not null)
+        {
+            <MudPaper Class="pa-3" Elevation="1">
+                <MudGrid>
+                    <MudItem xs="12" md="3">
+                        <MudText Typo="Typo.caption">Status</MudText>
+                        <MudText Color="@GetProcessingColor(selectedBatchImportLight_.ProcessingState)">@selectedBatchImportLight_.ProcessingState</MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="5">
+                        <MudText Typo="Typo.caption">Processing</MudText>
+                        <MudProgressLinear Value="@ToPercent(selectedBatchImportLight_.ProcessingProgress)" Color="@GetProcessingProgressColor(selectedBatchImportLight_.ProcessingState)" />
+                        <MudText Typo="Typo.caption">@selectedBatchImportLight_.ProcessingMessage</MudText>
+                    </MudItem>
+                    <MudItem xs="6" md="2">
+                        <MudText Typo="Typo.caption">Items</MudText>
+                        <MudText>@selectedBatchImportLight_.ItemCount</MudText>
+                    </MudItem>
+                    <MudItem xs="6" md="2">
+                        <MudText Typo="Typo.caption">Created Cases</MudText>
+                        <MudText>@selectedBatchImportLight_.CreatedCaseCount</MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        }
+
+        @if (isLoadingBatchImport_)
+        {
+            <MudProgressLinear Indeterminate="true" />
+        }
+        else if (currentBatchImport_ is not null)
+        {
+            <MudPaper Class="pa-4" Elevation="1">
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="currentBatchImport_.Name" Label="Name" Required="true" ShrinkLabel />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudSelect T="ActiveVolumeCaseProcessingState" Label="State" @bind-Value="currentBatchImport_.ProcessingState" ShrinkLabel>
+                            @foreach (ActiveVolumeCaseProcessingState state in Enum.GetValues<ActiveVolumeCaseProcessingState>())
+                            {
+                                <MudSelectItem T="ActiveVolumeCaseProcessingState" Value="@state">@state</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudTextField Value="@FormatDate(currentBatchImport_.CreationDate)" Label="Created" ReadOnly="true" ShrinkLabel />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="currentBatchImport_.ProcessingMessage" Label="Processing message" ShrinkLabel />
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            <MudPaper Class="pa-4" Elevation="1">
+                <MudText Typo="Typo.h6">Import Items</MudText>
+                <MudTable Items="@currentBatchImport_.Items" T="ActiveVolumeCaseBatchImportItem" Dense="true" Hover="true" Bordered="true">
+                    <HeaderContent>
+                        <MudTh>File</MudTh>
+                        <MudTh>Case</MudTh>
+                        <MudTh>State</MudTh>
+                        <MudTh>Created Case</MudTh>
+                        <MudTh>Message</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="File">@context.FileName</MudTd>
+                        <MudTd DataLabel="Case">@context.CaseMetadata.Name</MudTd>
+                        <MudTd DataLabel="State">
+                            <MudText Color="@GetProcessingColor(context.ProcessingState)">@context.ProcessingState</MudText>
+                        </MudTd>
+                        <MudTd DataLabel="Created Case">@FormatNullableGuid(context.CreatedCaseID)</MudTd>
+                        <MudTd DataLabel="Message">@context.ProcessingMessage</MudTd>
+                    </RowTemplate>
+                    <NoRecordsContent>
+                        <MudText>No files are part of this batch import.</MudText>
+                    </NoRecordsContent>
+                </MudTable>
+            </MudPaper>
+        }
+    </MudStack>
 }
 
 @code {
-    private List<ActiveVolumeCaseBatchImport>? batchImports_;
+    private List<ActiveVolumeCaseBatchImportLight>? batchImports_;
+    private ActiveVolumeCaseBatchImportLight? selectedBatchImportLight_;
+    private ActiveVolumeCaseBatchImport? currentBatchImport_;
+    private bool isEditing_;
+    private bool isLoadingBatchImport_;
+    private bool isBusy_;
 
     protected override async Task OnInitializedAsync()
     {
+        await ReloadBatchImportsAsync();
+    }
+
+    private async Task ReloadBatchImportsAsync()
+    {
         batchImports_ = await Api.GetBatchImportsAsync();
     }
+
+    private async Task OnBatchImportRowClicked(TableRowClickEventArgs<ActiveVolumeCaseBatchImportLight> args)
+    {
+        if (args.Item is null)
+        {
+            return;
+        }
+
+        ActiveVolumeCaseBatchImportLight selectedBatchImport = args.Item;
+        selectedBatchImportLight_ = selectedBatchImport;
+        isEditing_ = true;
+        isLoadingBatchImport_ = true;
+        currentBatchImport_ = await Api.GetBatchImportAsync(selectedBatchImport.ID);
+        isLoadingBatchImport_ = false;
+    }
+
+    private async Task SaveBatchImportAsync()
+    {
+        if (currentBatchImport_ is null)
+        {
+            return;
+        }
+
+        isBusy_ = true;
+        bool saved = await Api.SaveBatchImportAsync(currentBatchImport_);
+        isBusy_ = false;
+        Snackbar.Add(saved ? "Batch import saved." : "Could not save batch import.", saved ? Severity.Success : Severity.Error);
+        await ReloadBatchImportsAsync();
+    }
+
+    private async Task CloseEditorAsync()
+    {
+        isEditing_ = false;
+        currentBatchImport_ = null;
+        selectedBatchImportLight_ = null;
+        await ReloadBatchImportsAsync();
+    }
+
+    private static string FormatDate(DateTimeOffset value) => value.ToString("u");
+
+    private static string FormatNullableGuid(Guid? value) => value?.ToString() ?? string.Empty;
+
+    private static double ToPercent(double progress) => Math.Clamp(progress, 0.0, 1.0) * 100.0;
+
+    private static string FormatPercent(double progress) => $"{ToPercent(progress):F0}%";
+
+    private static Color GetProcessingColor(ActiveVolumeCaseProcessingState state) => state switch
+    {
+        ActiveVolumeCaseProcessingState.Processed => Color.Success,
+        ActiveVolumeCaseProcessingState.Failed or ActiveVolumeCaseProcessingState.Interrupted => Color.Error,
+        ActiveVolumeCaseProcessingState.Queued or ActiveVolumeCaseProcessingState.Processing or ActiveVolumeCaseProcessingState.Uploading => Color.Info,
+        _ => Color.Default
+    };
+
+    private static Color GetProcessingProgressColor(ActiveVolumeCaseProcessingState state) => state switch
+    {
+        ActiveVolumeCaseProcessingState.Processed => Color.Success,
+        ActiveVolumeCaseProcessingState.Failed or ActiveVolumeCaseProcessingState.Interrupted => Color.Error,
+        _ => Color.Info
+    };
 }

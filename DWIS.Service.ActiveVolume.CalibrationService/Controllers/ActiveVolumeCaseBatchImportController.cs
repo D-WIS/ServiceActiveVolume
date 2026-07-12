@@ -22,6 +22,12 @@ namespace DWIS.Service.ActiveVolume.CalibrationService.Controllers
             return Ok(store_.GetAllBatchImports());
         }
 
+        [HttpGet("LightData", Name = "GetAllActiveVolumeCaseBatchImportLight")]
+        public ActionResult<IEnumerable<ActiveVolumeCaseBatchImportLight>> GetAllActiveVolumeCaseBatchImportLight()
+        {
+            return Ok(store_.GetAllBatchImports().Select(batch => batch.Light));
+        }
+
         [HttpGet("{id}", Name = "GetActiveVolumeCaseBatchImportById")]
         public ActionResult<ActiveVolumeCaseBatchImport> GetActiveVolumeCaseBatchImportById(Guid id)
         {

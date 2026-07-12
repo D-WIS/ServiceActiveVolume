@@ -10,6 +10,6 @@ namespace DWIS.Service.ActiveVolume.CalibrationWebPages
         public string WellBoreArchitectureHostURL { get; set; } = string.Empty;
         public string DrillStringHostURL { get; set; } = string.Empty;
         public string UnitConversionHostURL { get; set; } = string.Empty;
-        public string VerticalDepthHostURL { get; set; } = string.Empty;
+        public string VerticalDatumHostURL { get; set; } = string.Empty;
     }
 }

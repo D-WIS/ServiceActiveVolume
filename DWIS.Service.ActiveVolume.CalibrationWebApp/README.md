@@ -1,20 +1,24 @@
 # DWIS.Service.ActiveVolume.CalibrationWebApp
 
-`DWIS.Service.ActiveVolume.CalibrationWebApp` is the Blazor Server host for the reusable ActiveVolume web pages.
+`DWIS.Service.ActiveVolume.CalibrationWebApp` is the Blazor Server host for the reusable ActiveVolume web pages and selected reusable contextual-data pages.
 
 The project stays intentionally thin: layout, host configuration, endpoint wiring, and static shell assets live here, while feature pages live in `DWIS.Service.ActiveVolume.CalibrationWebPages`.
 
 ## Responsibilities
 
 - Host the reusable ActiveVolume Razor class library.
+- Compose contextual data and calculator pages from their NuGet packages, following the Trajectory web app pattern.
 - Provide endpoint configuration for the CalibrationService, context data services, and calculator services.
 - Render the left-side ActiveVolume navigation.
 - Package the UI as a deployable Docker image.
 
 ## Main Files
 
-- `Program.cs`: Blazor Server setup and `AddActiveVolumeCalibrationWebPages` registration.
+- `Program.cs`: Blazor Server setup and ActiveVolume/external web page registrations.
 - `App.razor`: route discovery for both host and reusable page assemblies.
+- `ExternalRazorAssemblies.cs`: external Razor class libraries discovered by the router.
+- `ExternalWebPagesServiceCollectionExtensions.cs`: DI registrations for external page API helpers.
+- `WebPagesHostConfiguration.cs`: host configuration shared across ActiveVolume and external page packages.
 - `Shared/MainLayout.razor`: application layout and navigation host.
 - `Pages/_Host.cshtml`: Blazor Server host page.
 - `wwwroot/css/site.css`: host-level CSS.
@@ -38,7 +42,10 @@ service names such as `http://norcedrillingfieldservice/`, as in the Trajectory 
   "WellBoreArchitectureHostURL": "http://norcedrillingwellborearchitectureservice/",
   "DrillStringHostURL": "http://norcedrillingdrillstringservice/",
   "UnitConversionHostURL": "http://osdcunitconversionservice/",
-  "VerticalDepthHostURL": "http://norcedrillingverticaldepthservice/"
+  "RigHostURL": "http://norcedrillingrigservice/",
+  "TrajectoryHostURL": "http://norcedrillingtrajectoryservice/",
+  "CartographicProjectionHostURL": "http://norcedrillingcartographicprojectionservice/",
+  "VerticalDatumHostURL": "http://norcedrillingverticaldatumservice/"
 }
 ```
 
@@ -49,9 +56,10 @@ BasePath=/activevolumecalibration/webapp
 ActiveVolumeCalibrationHostURL=http://calibration/
 FieldHostURL=http://field/
 UnitConversionHostURL=http://unit-conversion/
+VerticalDatumHostURL=http://vertical-datum/
 ```
 
-The context service URLs mirror the services represented in `DWIS.Service.ActiveVolume.ModelSharedOut`. As in Trajectory, host URL settings are service roots. The reusable page API helper appends `activevolumecalibration/api` for CalibrationService calls. Browser navigation uses fixed web app route paths in the Razor menu.
+The context service URLs mirror the services represented in `DWIS.Service.ActiveVolume.ModelSharedOut` and the services required by the embedded contextual pages. As in Trajectory, host URL settings are service roots. The reusable page API helper appends `activevolumecalibration/api` for CalibrationService calls.
 
 ## Build and Run
 
@@ -88,4 +96,4 @@ Endpoint URLs are configured through chart values under `env`.
 - `DWIS.Service.ActiveVolume.CalibrationWebPages`
 - `DWIS.Service.ActiveVolume.ModelSharedOut`
 - CalibrationService REST API
-- optional context and calculator web apps
+- contextual data and calculator web page NuGet packages

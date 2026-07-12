@@ -58,6 +58,35 @@ namespace DWIS.Service.ActiveVolume.Model.Import
         public double ProcessingProgress { get; set; }
         public string ProcessingMessage { get; set; } = string.Empty;
         public List<ActiveVolumeCaseBatchImportItem> Items { get; set; } = new();
+
+        public ActiveVolumeCaseBatchImportLight Light => ActiveVolumeCaseBatchImportLight.FromBatchImport(this);
+    }
+
+    public sealed class ActiveVolumeCaseBatchImportLight
+    {
+        public Guid ID { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public DateTimeOffset CreationDate { get; set; }
+        public ActiveVolumeCaseProcessingState ProcessingState { get; set; }
+        public double ProcessingProgress { get; set; }
+        public string ProcessingMessage { get; set; } = string.Empty;
+        public int ItemCount { get; set; }
+        public int CreatedCaseCount { get; set; }
+
+        public static ActiveVolumeCaseBatchImportLight FromBatchImport(ActiveVolumeCaseBatchImport data)
+        {
+            return new ActiveVolumeCaseBatchImportLight
+            {
+                ID = data.ID,
+                Name = data.Name,
+                CreationDate = data.CreationDate,
+                ProcessingState = data.ProcessingState,
+                ProcessingProgress = data.ProcessingProgress,
+                ProcessingMessage = data.ProcessingMessage,
+                ItemCount = data.Items.Count,
+                CreatedCaseCount = data.Items.Count(item => item.CreatedCaseID.HasValue)
+            };
+        }
     }
 
     public sealed class ActiveVolumeCaseBatchImportItem

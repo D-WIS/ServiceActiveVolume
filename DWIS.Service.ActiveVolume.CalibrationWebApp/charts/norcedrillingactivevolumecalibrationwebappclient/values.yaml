@@ -43,7 +43,10 @@ env:
   WellBoreArchitectureHostURL: "http://norcedrillingwellborearchitectureservice/"
   DrillStringHostURL: "http://norcedrillingdrillstringservice/"
   UnitConversionHostURL: "http://osdcunitconversionservice/"
-  VerticalDepthHostURL: "http://norcedrillingverticaldepthservice/"
+  RigHostURL: "http://norcedrillingrigservice/"
+  TrajectoryHostURL: "http://norcedrillingtrajectoryservice/"
+  CartographicProjectionHostURL: "http://norcedrillingcartographicprojectionservice/"
+  VerticalDatumHostURL: "http://norcedrillingverticaldatumservice/"
 ingress:
   enabled: true
   className: public
