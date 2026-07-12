@@ -1,0 +1,50 @@
+@page "/activevolume/cases"
+@inject IActiveVolumeAPIUtils Api
+
+<h1>Active Volume Cases</h1>
+
+@if (cases_ is null)
+{
+    <p>Loading...</p>
+}
+else if (cases_.Count == 0)
+{
+    <p>No cases have been stored yet.</p>
+}
+else
+{
+    <table class="activevolume-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>State</th>
+                <th>Progress</th>
+                <th>Chunks</th>
+                <th>Samples</th>
+                <th>Return flow</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in cases_)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.ProcessingState</td>
+                    <td>@item.ProcessingProgress.ToString("P0")</td>
+                    <td>@item.ChunkCount</td>
+                    <td>@item.SampleCount</td>
+                    <td>@item.ReturnFlowMeasurementMode</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<ActiveVolumeCaseLight>? cases_;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cases_ = await Api.GetCasesAsync();
+    }
+}

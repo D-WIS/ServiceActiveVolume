@@ -1,0 +1,17 @@
+<Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="@AdditionalAssemblies">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(Shared.MainLayout)" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="@typeof(Shared.MainLayout)">
+            <p>Nothing was found at this address.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
+
+@code {
+    private static readonly System.Reflection.Assembly[] AdditionalAssemblies =
+    [
+        typeof(DWIS.Service.ActiveVolume.WebPages.ActiveVolumeNavMenu).Assembly
+    ];
+}

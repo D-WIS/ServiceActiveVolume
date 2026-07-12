@@ -13,6 +13,8 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["DWIS.Service.ActiveVolume.Server/config/Quickstarts.ReferenceClient.Config.xml", "/app/config/"]
 COPY ["DWIS.Service.ActiveVolume.Server/DWIS.Service.ActiveVolume.Server.csproj", "DWIS.Service.ActiveVolume.Server/"]
+COPY ["DWIS.Service.ActiveVolume.Model/DWIS.Service.ActiveVolume.Model.csproj", "DWIS.Service.ActiveVolume.Model/"]
+COPY ["DWIS.Service.ActiveVolume.ModelSharedIn/DWIS.Service.ActiveVolume.ModelSharedIn.csproj", "DWIS.Service.ActiveVolume.ModelSharedIn/"]
 RUN dotnet restore "./DWIS.Service.ActiveVolume.Server/DWIS.Service.ActiveVolume.Server.csproj"
 COPY . .
 WORKDIR "/src/DWIS.Service.ActiveVolume.Server"

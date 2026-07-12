@@ -1,0 +1,20 @@
+@inject IActiveVolumeWebPagesConfiguration Configuration
+
+<nav class="activevolume-nav">
+    <a href="">Home</a>
+    <a href="activevolume/cases">Active Volume Cases</a>
+    <a href="activevolume/batch-imports">Batch Imports</a>
+    <a href="activevolume/calibrations">Calibrations</a>
+    <a href="activevolume/online">Online Cases</a>
+    <a href="activevolume/jobs">Jobs / Processing</a>
+    <div class="activevolume-nav-group">Context</div>
+    <a href="@Configuration.FieldHostURL">Field</a>
+    <a href="@Configuration.ClusterHostURL">Cluster</a>
+    <a href="@Configuration.WellHostURL">Well</a>
+    <a href="@Configuration.WellBoreHostURL">WellBore</a>
+    <a href="@Configuration.WellBoreArchitectureHostURL">WellBore Architecture</a>
+    <a href="@Configuration.DrillStringHostURL">Drill String</a>
+    <div class="activevolume-nav-group">Calculators</div>
+    <a href="@Configuration.UnitConversionHostURL">Unit Conversion</a>
+    <a href="@Configuration.VerticalDepthHostURL">Vertical Depth</a>
+</nav>

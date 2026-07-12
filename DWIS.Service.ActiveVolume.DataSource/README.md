@@ -1,139 +1,51 @@
 # DWIS.Service.ActiveVolume.DataSource
 
-`DWIS.Service.ActiveVolume.DataSource` is a .NET 8 worker service that publishes synthetic realtime input signals for the active-volume workflow to the DWIS blackboard.
+`DWIS.Service.ActiveVolume.DataSource` is a development worker that publishes synthetic ActiveVolume input signals to the DWIS blackboard.
 
-## Purpose
+It is useful for local demonstrations, smoke tests, and validating the online worker without connecting to a real rig data source.
 
-This project is a signal generator used to drive and test downstream services (notably `DWIS.Service.ActiveVolume.Server`).
+## Responsibilities
 
-It continuously publishes `RealtimeInputsData` with internally generated values for:
-
-- active pit volume
-- inlet flow rate
-- shaker load estimates (return proportion proxy)
-- cuttings recovery rates
-
-## Project Role in the Solution
-
-- `DWIS.Service.ActiveVolume.DataSource`: publishes synthetic **inputs** to blackboard.
-- `DWIS.Service.ActiveVolume.Server`: consumes those inputs and computes fused outputs.
-- `DWIS.Service.ActiveVolume.DataSink`: reads/logs fused outputs.
-
-## Main Components
-
-- `Program.cs`: generic host bootstrap and hosted `Worker` registration.
-- `Worker.cs`: blackboard registration and periodic synthetic data generation.
-- `config/Quickstarts.ReferenceClient.Config.xml`: OPC UA client configuration used by the DWIS client stack.
-- `appsettings*.json`: logging configuration.
+- Connect to the DWIS blackboard.
+- Register writable `RealtimeInputsData` variables.
+- Generate synthetic active volume, inlet flow, return-flow proxy, cuttings recovery, and depth-related signals.
+- Publish samples on the worker loop cadence.
 
 ## Runtime Flow
 
-At startup (`Worker.ExecuteAsync`):
-
-1. Connect to blackboard (`ConnectToBlackboard`).
-2. Register `RealtimeInputsData` as writable variables on blackboard.
-3. Enter periodic loop with cadence `LoopSpan`.
-
-Each loop iteration (`Worker.Loop`):
-
-1. Populate `RealtimeInputsData` fields.
-2. Advance internal simulation time `t += LoopSpan.TotalSeconds`.
-3. Publish current sample to blackboard (`PublishBlackboardAsync`).
-4. Log emitted values.
-
-## Synthetic Signal Model
-
-The generator uses fixed internal constants:
-
-- `flowrateIn = 2000 / 60000 m^3/s` (2000 L/min)
-- `flowrateOut = flowrateIn`
-- `activeVolume = 30.0 m^3` initial
-- `activeVolumeAmplitude = 1.0 m^3`
-- `activeVolumePeriod = 15.0 s`
-- `cuttingsFlowrate = 30 / 60000 m^3/s` (30 L/min)
-- `scalingFactor = 3000 / 60000 m^3/s`
-- cuttings std dev per shaker: `1 / 60000 m^3/s`
-- shaker load std dev per shaker: `0.1`
-
-### Active volume evolution
-
-Per loop:
-
 ```text
-activeVolume += dt * (-flowrateIn + flowrateOut - cuttingsFlowrate)
+DataSource -> Blackboard -> Server -> DataSink
 ```
 
-Published `ActiveVolume` adds sinusoidal variation:
+The service does not run calibration or fusion logic. It only produces inputs for `DWIS.Service.ActiveVolume.Server`.
 
-```text
-ActiveVolume = activeVolume + activeVolumeAmplitude * sin(2*pi*t/activeVolumePeriod)
-```
+## Main Files
 
-### Cuttings recovery rates
-
-Published as two Gaussian values (representing two shakers), each with half of total cuttings flow:
-
-```text
-Mean = 0.5 * cuttingsFlowrate
-Std  = cuttingsFlowrateStandardDeviation
-```
-
-### Shaker load estimates
-
-`totalShakerLoadEstimates = flowrateOut / scalingFactor`
-
-Published as two Gaussian values, each with:
-
-```text
-Mean = 0.5 * totalShakerLoadEstimates * 10.0
-Std  = shakerLoadStandardDeviation
-```
-
-Note: the downstream fusion logic divides shaker means by `10.0` and averages them, so this encoding maps back to return proportion.
-
-## Published Blackboard Variables
-
-From `RealtimeInputsData`:
-
-- `ActiveVolume` (`m^3`)
-- `FlowrateIn` (`m^3/s`)
-- `CuttingsRecoveryRates` (`GaussianValuesProperty`, `m^3/s` means)
-- `ShakerLoadEstimates` (`GaussianValuesProperty`, dimensionless means)
-
-## Logging
-
-At `Information` level, each loop logs:
-
-- inlet flow (`L/min`)
-- active volume (`m^3`)
-- derived flow-out proportion (`%`)
-- total cuttings flow (`L/min`)
+- `Program.cs`: generic worker host setup.
+- `Worker.cs`: blackboard connection, signal generation, and publishing loop.
+- `appsettings*.json`: logging configuration.
+- `Dockerfile`: Linux container build.
 
 ## Build and Run
-
-### Local
 
 ```bash
 dotnet build DWIS.Service.ActiveVolume.DataSource/DWIS.Service.ActiveVolume.DataSource.csproj
 dotnet run --project DWIS.Service.ActiveVolume.DataSource/DWIS.Service.ActiveVolume.DataSource.csproj
 ```
 
-### Container
-
-A multi-stage Dockerfile is provided and starts with:
+## Docker
 
 ```bash
-dotnet DWIS.Service.ActiveVolume.DataSource.dll
+docker build --file DWIS.Service.ActiveVolume.DataSource/Dockerfile --tag dwis-service-activevolume-datasource:local .
+docker run --rm dwis-service-activevolume-datasource:local
 ```
 
 ## Dependencies
 
-- DWIS worker runtime (`DWIS.RigOS.Common.Worker` via project references)
-- DWIS OPC Foundation client integration (`DWIS.Client.ReferenceImplementation.OPCFoundation`)
-- Model project reference: `DWIS.Service.ActiveVolume.Model`
+- `DWIS.Service.ActiveVolume.Model`
+- DWIS worker and OPC UA client packages
+- a reachable DWIS blackboard
 
-## Operational Notes
+## Notes
 
-- This service is deterministic given `LoopSpan` and startup state.
-- It is intended as a development/test data producer rather than a production sensor adapter.
-- The process starts publishing only when blackboard connection is established.
+This is not a production sensor adapter. Production ingestion should be implemented by the appropriate rig data bridge or blackboard publisher.

@@ -1,0 +1,38 @@
+name: Build and Push Docker images
+
+on:
+  workflow_dispatch:
+  #push:
+    #branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build Server Docker image
+        run: docker build --file "${{ github.workspace }}/DWIS.Service.ActiveVolume.Server/Dockerfile" --tag digiwells/dwisserviceactivevolumeserver:stable .
+
+      - name: Push Server Docker image
+        run: docker push digiwells/dwisserviceactivevolumeserver:stable
+
+      - name: Build CalibrationService Docker image
+        run: docker build --file "${{ github.workspace }}/DWIS.Service.ActiveVolume.CalibrationService/Dockerfile" --tag digiwells/norcedrillingactivevolumecalibrationservice:stable .
+
+      - name: Push CalibrationService Docker image
+        run: docker push digiwells/norcedrillingactivevolumecalibrationservice:stable
+
+      - name: Build WebApp Docker image
+        run: docker build --file "${{ github.workspace }}/DWIS.Service.ActiveVolume.WebApp/Dockerfile" --tag digiwells/norcedrillingactivevolumewebappclient:stable .
+
+      - name: Push WebApp Docker image
+        run: docker push digiwells/norcedrillingactivevolumewebappclient:stable

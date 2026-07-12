@@ -1,0 +1,29 @@
+.activevolume-nav {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1rem;
+}
+
+.activevolume-nav a {
+    color: inherit;
+    padding: 0.35rem 0.5rem;
+    text-decoration: none;
+}
+
+.activevolume-nav-group {
+    font-weight: 700;
+    margin-top: 1rem;
+    opacity: 0.75;
+}
+
+.activevolume-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.activevolume-table th,
+.activevolume-table td {
+    border-bottom: 1px solid #d0d7de;
+    padding: 0.5rem;
+    text-align: left;
+}

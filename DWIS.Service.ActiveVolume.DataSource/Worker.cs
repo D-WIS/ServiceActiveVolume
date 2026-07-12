@@ -33,8 +33,8 @@ namespace DWIS.Service.ActiveVolume.DataSource
             double activeVolume = 30.0; // m^3
             double scalingFactor = 3000.0 / 60000.0; // scaling factor for flowrate out proportion in m^3/s
             double cuttingsFlowrate = 30.0 / 60000.0; // 20 L/min converted to m^3/s
-            double cuttingsFlowrateStandardDeviation = 1.0 / 60000.0;
-            double shakerLoadStandardDeviation = 0.1;
+            double bottomHoleDepth = 2500.0;
+            double bottomOfStringDepth = 2400.0;
             double t = 0;
             while (await timer.WaitForNextTickAsync(cancellationToken))
             {
@@ -43,6 +43,16 @@ namespace DWIS.Service.ActiveVolume.DataSource
                     RealtimeInputsData.FlowrateIn = new ScalarProperty();
                 }
                 RealtimeInputsData.FlowrateIn.Value = flowrateIn;
+                RealtimeInputsData.FlowPaddlePosition ??= new ScalarProperty();
+                RealtimeInputsData.FlowPaddlePosition.Value = flowrateOut / scalingFactor;
+                RealtimeInputsData.CoriolisVolumetricFlowrate ??= new ScalarProperty();
+                RealtimeInputsData.CoriolisVolumetricFlowrate.Value = flowrateOut;
+                RealtimeInputsData.ReturnMudDensity ??= new ScalarProperty();
+                RealtimeInputsData.ReturnMudDensity.Value = 1200.0;
+                RealtimeInputsData.BottomHoleDepth ??= new ScalarProperty();
+                RealtimeInputsData.BottomHoleDepth.Value = bottomHoleDepth;
+                RealtimeInputsData.BottomOfStringDepth ??= new ScalarProperty();
+                RealtimeInputsData.BottomOfStringDepth.Value = bottomOfStringDepth;
                 activeVolume += LoopSpan.TotalSeconds * (-flowrateIn + flowrateOut - cuttingsFlowrate);
                 if (RealtimeInputsData.ActiveVolume is null)
                 {

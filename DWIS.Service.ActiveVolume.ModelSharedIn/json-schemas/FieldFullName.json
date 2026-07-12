@@ -1,0 +1,2113 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "Service, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "version": "1.0"
+  },
+  "paths": {
+    "/Field": {
+      "get": {
+        "tags": [
+          "Field"
+        ],
+        "operationId": "GetAllFieldId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Field"
+        ],
+        "operationId": "PostField",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.Field"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.Field"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.Field"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Field/MetaInfo": {
+      "get": {
+        "tags": [
+          "Field"
+        ],
+        "operationId": "GetAllFieldMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Field/{id}": {
+      "get": {
+        "tags": [
+          "Field"
+        ],
+        "operationId": "GetFieldById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.Field"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Field"
+        ],
+        "operationId": "PutFieldById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.Field"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.Field"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.Field"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Field"
+        ],
+        "operationId": "DeleteFieldById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Field/HeavyData": {
+      "get": {
+        "tags": [
+          "Field"
+        ],
+        "operationId": "GetAllField",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.Field"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Field/LightData": {
+      "get": {
+        "tags": [
+          "Field"
+        ],
+        "operationId": "GetAllFieldLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldCartographicConversionSet": {
+      "get": {
+        "tags": [
+          "FieldCartographicConversionSet"
+        ],
+        "operationId": "GetAllFieldCartographicConversionSetId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FieldCartographicConversionSet"
+        ],
+        "operationId": "PostFieldCartographicConversionSet",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldCartographicConversionSet"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldCartographicConversionSet"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldCartographicConversionSet"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/FieldCartographicConversionSet/MetaInfo": {
+      "get": {
+        "tags": [
+          "FieldCartographicConversionSet"
+        ],
+        "operationId": "GetAllFieldCartographicConversionSetMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Field.ModelShared.MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldCartographicConversionSet/{id}": {
+      "get": {
+        "tags": [
+          "FieldCartographicConversionSet"
+        ],
+        "operationId": "GetFieldCartographicConversionSetById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldCartographicConversionSet"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "FieldCartographicConversionSet"
+        ],
+        "operationId": "PutFieldCartographicConversionSetById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldCartographicConversionSet"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldCartographicConversionSet"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldCartographicConversionSet"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "FieldCartographicConversionSet"
+        ],
+        "operationId": "DeleteFieldCartographicConversionSetById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/FieldCartographicConversionSet/FieldID": {
+      "get": {
+        "tags": [
+          "FieldCartographicConversionSet"
+        ],
+        "operationId": "GetAllFieldCartographicConversionSetByFieldId",
+        "parameters": [
+          {
+            "name": "fieldId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldCartographicConversionSet"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldCartographicConversionSet/LightData": {
+      "get": {
+        "tags": [
+          "FieldCartographicConversionSet"
+        ],
+        "operationId": "GetAllFieldCartographicConversionSetLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldCartographicConversionSetLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldCartographicConversionSet/HeavyData": {
+      "get": {
+        "tags": [
+          "FieldCartographicConversionSet"
+        ],
+        "operationId": "GetAllFieldCartographicConversionSet",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldCartographicConversionSet"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldDelineationLineType": {
+      "get": {
+        "tags": [
+          "FieldDelineationLineType"
+        ],
+        "operationId": "GetAllFieldDelineationLineTypeId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FieldDelineationLineType"
+        ],
+        "operationId": "PostFieldDelineationLineType",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldDelineationLineType"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldDelineationLineType"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldDelineationLineType"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/FieldDelineationLineType/MetaInfo": {
+      "get": {
+        "tags": [
+          "FieldDelineationLineType"
+        ],
+        "operationId": "GetAllFieldDelineationLineTypeMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldDelineationLineType/{id}": {
+      "get": {
+        "tags": [
+          "FieldDelineationLineType"
+        ],
+        "operationId": "GetFieldDelineationLineTypeById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldDelineationLineType"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "FieldDelineationLineType"
+        ],
+        "operationId": "PutFieldDelineationLineTypeById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldDelineationLineType"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldDelineationLineType"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldDelineationLineType"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "FieldDelineationLineType"
+        ],
+        "operationId": "DeleteFieldDelineationLineTypeById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/FieldDelineationLineType/HeavyData": {
+      "get": {
+        "tags": [
+          "FieldDelineationLineType"
+        ],
+        "operationId": "GetAllFieldDelineationLineType",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldDelineationLineType"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldFeatureCategory": {
+      "get": {
+        "tags": [
+          "FieldFeatureCategory"
+        ],
+        "operationId": "GetAllFieldFeatureCategoryId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FieldFeatureCategory"
+        ],
+        "operationId": "PostFieldFeatureCategory",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldFeatureCategory"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldFeatureCategory"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldFeatureCategory"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/FieldFeatureCategory/MetaInfo": {
+      "get": {
+        "tags": [
+          "FieldFeatureCategory"
+        ],
+        "operationId": "GetAllFieldFeatureCategoryMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldFeatureCategory/{id}": {
+      "get": {
+        "tags": [
+          "FieldFeatureCategory"
+        ],
+        "operationId": "GetFieldFeatureCategoryById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldFeatureCategory"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "FieldFeatureCategory"
+        ],
+        "operationId": "PutFieldFeatureCategoryById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldFeatureCategory"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldFeatureCategory"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldFeatureCategory"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "FieldFeatureCategory"
+        ],
+        "operationId": "DeleteFieldFeatureCategoryById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/FieldFeatureCategory/HeavyData": {
+      "get": {
+        "tags": [
+          "FieldFeatureCategory"
+        ],
+        "operationId": "GetAllFieldFeatureCategory",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldFeatureCategory"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldIdentity": {
+      "get": {
+        "tags": [
+          "FieldIdentity"
+        ],
+        "operationId": "GetAllFieldIdentityId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FieldIdentity"
+        ],
+        "operationId": "PostFieldIdentity",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldIdentity"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldIdentity"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldIdentity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/FieldIdentity/MetaInfo": {
+      "get": {
+        "tags": [
+          "FieldIdentity"
+        ],
+        "operationId": "GetAllFieldIdentityMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldIdentity/{id}": {
+      "get": {
+        "tags": [
+          "FieldIdentity"
+        ],
+        "operationId": "GetFieldIdentityById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldIdentity"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "FieldIdentity"
+        ],
+        "operationId": "PutFieldIdentityById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldIdentity"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldIdentity"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldIdentity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "FieldIdentity"
+        ],
+        "operationId": "DeleteFieldIdentityById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/FieldIdentity/HeavyData": {
+      "get": {
+        "tags": [
+          "FieldIdentity"
+        ],
+        "operationId": "GetAllFieldIdentity",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldIdentity"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldMembershipCategory": {
+      "get": {
+        "tags": [
+          "FieldMembershipCategory"
+        ],
+        "operationId": "GetAllFieldMembershipCategoryId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FieldMembershipCategory"
+        ],
+        "operationId": "PostFieldMembershipCategory",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldMembershipCategory"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldMembershipCategory"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldMembershipCategory"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/FieldMembershipCategory/MetaInfo": {
+      "get": {
+        "tags": [
+          "FieldMembershipCategory"
+        ],
+        "operationId": "GetAllFieldMembershipCategoryMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldMembershipCategory/{id}": {
+      "get": {
+        "tags": [
+          "FieldMembershipCategory"
+        ],
+        "operationId": "GetFieldMembershipCategoryById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldMembershipCategory"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "FieldMembershipCategory"
+        ],
+        "operationId": "PutFieldMembershipCategoryById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldMembershipCategory"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldMembershipCategory"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldMembershipCategory"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "FieldMembershipCategory"
+        ],
+        "operationId": "DeleteFieldMembershipCategoryById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/FieldMembershipCategory/HeavyData": {
+      "get": {
+        "tags": [
+          "FieldMembershipCategory"
+        ],
+        "operationId": "GetAllFieldMembershipCategory",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldMembershipCategory"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldUsageStatistics": {
+      "get": {
+        "tags": [
+          "FieldUsageStatistics"
+        ],
+        "operationId": "GetFieldUsageStatistics",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.UsageStatisticsField"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "NORCE.Drilling.Field.Model.CountPerDay": {
+        "type": "object",
+        "properties": {
+          "Date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Count": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.Field": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "CartographicProjectionID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ReferencePoint": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.Math.Point3DGlobalCoordinates"
+          },
+          "FieldFeatureAssignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldFeatureAssignment"
+            },
+            "nullable": true
+          },
+          "FieldIdentityAssignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldIdentityAssignment"
+            },
+            "nullable": true
+          },
+          "FieldMembershipAssignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldMembershipAssignment"
+            },
+            "nullable": true
+          },
+          "DelineationLines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldDelineationLine"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.FieldCartographicConversionSet": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "FieldID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "FieldName": {
+            "type": "string",
+            "nullable": true
+          },
+          "FieldDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "CartographicCoordinateList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Field.ModelShared.CartographicCoordinate"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.FieldCartographicConversionSetLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "FieldID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "FieldName": {
+            "type": "string",
+            "nullable": true
+          },
+          "FieldDescription": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.FieldDelineationBoundaryLine": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "IsInteriorBoundary": {
+            "type": "boolean"
+          },
+          "IsClosed": {
+            "type": "boolean"
+          },
+          "Points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.Math.Point3DGlobalCoordinates"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.FieldDelineationLine": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "DelineationLineTypeID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "LineType": {
+            "type": "string",
+            "nullable": true
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "Margin": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TopDepth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "BottomDepth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.Math.Point3DGlobalCoordinates"
+            },
+            "nullable": true
+          },
+          "CalculatedBoundaryLines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldDelineationBoundaryLine"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.FieldDelineationLineType": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.FieldFeatureAssignment": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "FeatureCategoryID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "FeatureOptionID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "FromDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ToDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.FieldFeatureCategory": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsExclusive": {
+            "type": "boolean"
+          },
+          "HasValidityPeriod": {
+            "type": "boolean"
+          },
+          "Options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldFeatureOption"
+            },
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.FieldFeatureOption": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.FieldIdentity": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.FieldIdentityAssignment": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "IdentityID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "Value": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.FieldLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.FieldMembershipAssignment": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "MembershipCategoryID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "MembershipOptionID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "FromDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ToDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.FieldMembershipCategory": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsExclusive": {
+            "type": "boolean"
+          },
+          "HasValidityPeriod": {
+            "type": "boolean"
+          },
+          "Options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.FieldMembershipOption"
+            },
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.FieldMembershipOption": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.History": {
+        "type": "object",
+        "properties": {
+          "Data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.CountPerDay"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.Model.UsageStatisticsField": {
+        "type": "object",
+        "properties": {
+          "LastSaved": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "BackUpInterval": {
+            "type": "string",
+            "format": "date-span"
+          },
+          "GetAllFieldIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldMetaInfoPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetFieldByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldLightPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "PostFieldPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "PutFieldByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "DeleteFieldByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldCartographicConversionSetIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldCartographicConversionSetMetaInfoPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetFieldCartographicConversionSetByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldCartographicConversionSetByFieldIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldCartographicConversionSetLightPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldCartographicConversionSetPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "PostFieldCartographicConversionSetPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "PutFieldCartographicConversionSetByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "DeleteFieldCartographicConversionSetByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldDelineationLineTypeIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldDelineationLineTypeMetaInfoPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetFieldDelineationLineTypeByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldDelineationLineTypePerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "PostFieldDelineationLineTypePerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "PutFieldDelineationLineTypeByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "DeleteFieldDelineationLineTypeByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldFeatureCategoryIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldFeatureCategoryMetaInfoPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetFieldFeatureCategoryByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldFeatureCategoryPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "PostFieldFeatureCategoryPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "PutFieldFeatureCategoryByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "DeleteFieldFeatureCategoryByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldIdentityIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldIdentityMetaInfoPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetFieldIdentityByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldIdentityPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "PostFieldIdentityPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "PutFieldIdentityByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "DeleteFieldIdentityByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldMembershipCategoryIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldMembershipCategoryMetaInfoPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetFieldMembershipCategoryByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetAllFieldMembershipCategoryPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "PostFieldMembershipCategoryPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "PutFieldMembershipCategoryByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "DeleteFieldMembershipCategoryByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          },
+          "GetFieldUsageStatisticsPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.Model.History"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Field.ModelShared.CartographicCoordinate": {
+        "type": "object",
+        "properties": {
+          "Northing": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Easting": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "VerticalDepth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GeodeticCoordinate": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.ModelShared.GeodeticCoordinate"
+          },
+          "GridConvergenceDatum": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      },
+      "NORCE.Drilling.Field.ModelShared.GeodeticCoordinate": {
+        "type": "object",
+        "properties": {
+          "LatitudeWGS84": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "LongitudeWGS84": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "VerticalDepthWGS84": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "LatitudeDatum": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "LongitudeDatum": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "VerticalDepthDatum": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "OctreeDepth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "OctreeCode": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Field.ModelShared.OctreeCodeLong"
+          }
+        },
+        "additionalProperties": { }
+      },
+      "NORCE.Drilling.Field.ModelShared.MetaInfo": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "HttpHostName": {
+            "type": "string",
+            "nullable": true
+          },
+          "HttpHostBasePath": {
+            "type": "string",
+            "nullable": true
+          },
+          "HttpEndPoint": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      },
+      "NORCE.Drilling.Field.ModelShared.OctreeCodeLong": {
+        "type": "object",
+        "properties": {
+          "Depth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CodeHigh": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "CodeLow": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": { }
+      },
+      "OSDC.DotnetLibraries.General.DataManagement.MetaInfo": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "HttpHostName": {
+            "type": "string",
+            "nullable": true
+          },
+          "HttpHostBasePath": {
+            "type": "string",
+            "nullable": true
+          },
+          "HttpEndPoint": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.DotnetLibraries.General.Math.Point3DGlobalCoordinates": {
+        "type": "object",
+        "properties": {
+          "X": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Y": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Z": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "RiemannianNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "RiemannianEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

@@ -1,49 +1,55 @@
 # DWIS Service Active Volume
 
-This solution provides an end-to-end active-volume processing pipeline for DWIS blackboard environments.
+`DWIS.Service.ActiveVolume` provides the ActiveVolume online fusion, historical calibration, and inspection tooling for DWIS blackboard environments.
 
-It includes:
+The solution is organized around three runtime surfaces:
 
-- a **data source** that publishes synthetic realtime inputs
-- a **fusion server** that runs the active-volume EKF
-- a **data sink** that reads and logs fused outputs
-- a shared **model** project that defines contracts and sensor-fusion logic
+- a realtime worker that reads drilling signals from the blackboard, runs the shared active-volume model, publishes fused values, and spools live data durably;
+- a calibration REST API that stores historical and online cases in SQLite, processes calibration jobs, and serves best-match calibration records;
+- a Blazor web app, backed by reusable web pages, for importing historical cases and inspecting cases, jobs, and calibrations.
 
-## Solution Projects
+All internal engineering values are represented in SI units. Imported spatial/contextual data is expected to be normalized to WGS84 at the import boundary.
 
-- `DWIS.Service.ActiveVolume.Model`
-  - Shared contracts and logic.
-  - Contains `RealtimeInputsData`, `RealtimeOutputsData`, `ConfigurationForActiveVolume`, and `SensorFusion`.
-- `DWIS.Service.ActiveVolume.Server`
-  - Main processing service.
-  - Reads input signals, executes fusion, publishes outputs.
-- `DWIS.Service.ActiveVolume.DataSource`
-  - Synthetic producer.
-  - Publishes test input signals to the blackboard.
-- `DWIS.Service.ActiveVolume.DataSink`
-  - Consumer/observer.
-  - Reads fused outputs and logs them.
+## Projects
 
-## Data Flow
+| Project | Role |
+| --- | --- |
+| `DWIS.Service.ActiveVolume.Model` | Shared domain model, DTOs, calibration records, import definitions, online fusion engine, and geometry calculators. |
+| `DWIS.Service.ActiveVolume.Server` | Realtime online worker connected to the DWIS blackboard and the CalibrationService. |
+| `DWIS.Service.ActiveVolume.CalibrationService` | ASP.NET Core REST API backed by SQLite for cases, chunks, batch imports, jobs, and calibration records. |
+| `DWIS.Service.ActiveVolume.WebPages` | Reusable Razor class library with ActiveVolume pages and API helpers; packaged as a NuGet. |
+| `DWIS.Service.ActiveVolume.WebApp` | Thin Blazor Server host for the reusable WebPages library. |
+| `DWIS.Service.ActiveVolume.ModelSharedIn` | Generated merged OpenAPI client/DTO project for upstream context services used by the online server. |
+| `DWIS.Service.ActiveVolume.ModelSharedOut` | Generated merged OpenAPI client/DTO project for client applications. |
+| `DWIS.Service.ActiveVolume.DataSource` | Development worker that publishes synthetic ActiveVolume inputs to the blackboard. |
+| `DWIS.Service.ActiveVolume.DataSink` | Development worker that reads and logs fused ActiveVolume outputs from the blackboard. |
+
+## Runtime Flow
 
 ```text
-DataSource  -->  Blackboard Inputs  -->  Server (EKF Fusion)  -->  Blackboard Outputs  -->  DataSink
+DataSource -> Blackboard -> Server -> Blackboard outputs
+                         \-> local online spool -> CalibrationService -> SQLite
+                                                       ^
+                                                       |
+                                                  WebApp/WebPages
 ```
 
-## Core Signals
+The online server owns one active online case. It persists realtime samples to an append-only local spool before uploading chunks to the CalibrationService, which minimizes data loss across process restarts.
 
-Inputs (published by DataSource / read by Server):
+## Core Data
 
-- active pit volume (`m^3`)
-- inlet flow rate (`m^3/s`)
-- shaker load estimates (dimensionless return proxy)
-- cuttings recovery rates (`m^3/s`)
+Realtime inputs include:
 
-Outputs (published by Server / read by DataSink):
+- active pit volume;
+- inlet flow;
+- flow-paddle return indication and/or Coriolis return-flow measurement;
+- cuttings recovery rate;
+- bit or bottom-of-string depth;
+- bottom-hole depth;
+- optional return mud density and standpipe pressure;
+- context IDs for field, cluster, well, wellbore, wellbore architecture, and drill-string.
 
-- corrected active volume (`m^3`)
-- estimated pit volume flow bias (`m^3/s`)
-- return flow capacity scale (`m^3/s`)
+Historical cases use chunked time-series storage so large imported datasets can be uploaded, stored, and processed incrementally. Each case carries context IDs so calibrations can later be matched against comparable field, well, wellbore architecture, and drill-string conditions.
 
 ## Build
 
@@ -51,13 +57,21 @@ Outputs (published by Server / read by DataSink):
 dotnet build DWIS.Service.ActiveVolume.sln
 ```
 
-## Run (Local)
+## Run Locally
 
-Start services in separate terminals, typically in this order:
+Start the Calibration REST API:
 
-1. DataSource
-2. Server
-3. DataSink
+```bash
+dotnet run --project DWIS.Service.ActiveVolume.CalibrationService/DWIS.Service.ActiveVolume.CalibrationService.csproj
+```
+
+Start the WebApp:
+
+```bash
+dotnet run --project DWIS.Service.ActiveVolume.WebApp/DWIS.Service.ActiveVolume.WebApp.csproj
+```
+
+Start the Blackboard development services in separate terminals:
 
 ```bash
 dotnet run --project DWIS.Service.ActiveVolume.DataSource/DWIS.Service.ActiveVolume.DataSource.csproj
@@ -65,35 +79,52 @@ dotnet run --project DWIS.Service.ActiveVolume.Server/DWIS.Service.ActiveVolume.
 dotnet run --project DWIS.Service.ActiveVolume.DataSink/DWIS.Service.ActiveVolume.DataSink.csproj
 ```
 
-## Configuration
+## Docker
 
-- Each runtime project has `appsettings.json` and `appsettings.Development.json`.
-- OPC UA / client connection setup is under each project `config/Quickstarts.ReferenceClient.Config.xml`.
-- EKF tuning and numerical settings are exposed via `ConfigurationForActiveVolume` in the model project and consumed by Server.
+Dockerfiles are provided for:
 
-### Realtime Input/Output Dumping (Server)
+- `DWIS.Service.ActiveVolume.Server`
+- `DWIS.Service.ActiveVolume.CalibrationService`
+- `DWIS.Service.ActiveVolume.WebApp`
+- `DWIS.Service.ActiveVolume.DataSource`
+- `DWIS.Service.ActiveVolume.DataSink`
 
-`DWIS.Service.ActiveVolume.Server` now supports periodic dumping of realtime input/output snapshots to JSON files.
+Use mounted volumes for `/home` so the online spool and SQLite calibration database persist across restarts.
 
-- Default dump directory: `/home` (shared Docker volume location)
-- Default dump interval: `01:00:00` (every plain UTC hour)
-- In-memory samples are reset after each successful dump to prevent memory growth.
+The GitHub Actions Docker workflow publishes:
 
-Configuration keys (in the same runtime configuration source used by Server, e.g. `home/config.json`):
+- `digiwells/dwisserviceactivevolumeserver:stable`
+- `digiwells/norcedrillingactivevolumecalibrationservice:stable`
+- `digiwells/norcedrillingactivevolumewebappclient:stable`
 
-- `EnableRealtimeDataDump` (`true`/`false`, default `true`)
-- `RealtimeDataDumpDirectory` (default `"/home"`)
-- `RealtimeDataDumpInterval` (`TimeSpan`, default `"01:00:00"`)
+## Kubernetes
 
-## Containers
+Helm charts are provided for the deployable REST API and WebApp:
 
-Each runtime project (`DataSource`, `Server`, `DataSink`) includes a Dockerfile for containerized execution.
+- `DWIS.Service.ActiveVolume.CalibrationService/charts/norcedrillingactivevolumecalibrationservice`
+- `DWIS.Service.ActiveVolume.WebApp/charts/norcedrillingactivevolumewebappclient`
 
-## Documentation
+Render them with:
 
-Detailed project-level documentation is available in:
+```bash
+helm template activevolume-calibration DWIS.Service.ActiveVolume.CalibrationService/charts/norcedrillingactivevolumecalibrationservice
+helm template activevolume-webapp DWIS.Service.ActiveVolume.WebApp/charts/norcedrillingactivevolumewebappclient
+```
 
-- `DWIS.Service.ActiveVolume.Model/README.md`
-- `DWIS.Service.ActiveVolume.Server/README.md`
-- `DWIS.Service.ActiveVolume.DataSource/README.md`
-- `DWIS.Service.ActiveVolume.DataSink/README.md`
+The CalibrationService chart includes a persistent volume claim mounted at `/home` for SQLite storage. The WebApp chart exposes endpoint URLs through chart values under `env`.
+
+## Publishing
+
+GitHub Actions workflows are available for release artifacts:
+
+- `.github/workflows/docker-build-push.yml`
+  - Builds and pushes the Server, CalibrationService, and WebApp Docker images to DockerHub.
+  - Requires repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_PASSWORD`.
+- `.github/workflows/publish-webpages-nuget.yml`
+  - Packs `DWIS.Service.ActiveVolume.WebPages` and publishes it to NuGet.org.
+  - Requires repository secret `NUGET_API_KEY`.
+  - Can be run manually with a version input or by pushing a tag like `webpages-v1.0.0`.
+
+## Project READMEs
+
+Each project folder contains a project-specific README with runtime, configuration, and build details.
