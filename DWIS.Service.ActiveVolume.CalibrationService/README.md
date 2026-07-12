@@ -57,6 +57,7 @@ Swagger is enabled by the project and can be used during development to inspect 
 ```json
 {
   "BasePath": "/activevolume/api",
+  "AlternateBasePath": "/activevolumecalibration/api",
   "DatabasePath": "/home/activevolume-calibration.db",
   "MaxConcurrentCalibrationJobs": 2,
   "FieldHostURL": "http://norcedrillingfieldservice/",
@@ -72,6 +73,7 @@ Environment variable equivalents:
 
 ```text
 BasePath=/activevolume/api
+AlternateBasePath=/activevolumecalibration/api
 DatabasePath=/home/activevolume-calibration.db
 MaxConcurrentCalibrationJobs=2
 FieldHostURL=http://norcedrillingfieldservice/
@@ -81,6 +83,8 @@ DrillStringHostURL=http://norcedrillingdrillstringservice/
 Mount `/home` in containers so the SQLite database survives restarts.
 
 The context service URLs mirror the services represented in `DWIS.Service.ActiveVolume.ModelSharedIn`: field, cluster, well, wellbore, wellbore architecture, and drill-string.
+
+The service accepts both `/activevolume/api` and `/activevolumecalibration/api` as external base paths. The first is the short historical ActiveVolume path; the second matches the CalibrationService naming.
 
 ## Build and Run
 

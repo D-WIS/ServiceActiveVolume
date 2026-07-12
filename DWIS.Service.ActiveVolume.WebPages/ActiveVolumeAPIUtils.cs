@@ -15,6 +15,7 @@ namespace DWIS.Service.ActiveVolume.WebPages
     public sealed class ActiveVolumeAPIUtils : IActiveVolumeAPIUtils
     {
         private const string ActiveVolumeCalibrationHostBasePath = "activevolume/api";
+        private const string ActiveVolumeCalibrationAlternateHostBasePath = "activevolumecalibration/api";
 
         private readonly HttpClient httpClient_;
         private readonly IActiveVolumeWebPagesConfiguration configuration_;
@@ -55,7 +56,8 @@ namespace DWIS.Service.ActiveVolume.WebPages
         private static string BuildCalibrationApiBaseUrl(string hostUrl)
         {
             string normalizedHost = hostUrl.TrimEnd('/');
-            if (normalizedHost.EndsWith("/activevolume/api", StringComparison.OrdinalIgnoreCase))
+            if (normalizedHost.EndsWith($"/{ActiveVolumeCalibrationHostBasePath}", StringComparison.OrdinalIgnoreCase) ||
+                normalizedHost.EndsWith($"/{ActiveVolumeCalibrationAlternateHostBasePath}", StringComparison.OrdinalIgnoreCase))
             {
                 return normalizedHost;
             }

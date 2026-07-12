@@ -12,7 +12,23 @@ builder.Services.AddSwaggerGen(config => config.CustomSchemaIds(type => type.Ful
 var app = builder.Build();
 
 var basePath = builder.Configuration["BasePath"] ?? "/activevolume/api";
-app.UsePathBase(basePath);
+var alternateBasePath = builder.Configuration["AlternateBasePath"] ?? "/activevolumecalibration/api";
+
+app.Use((context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments(alternateBasePath, out PathString alternateRemaining))
+    {
+        context.Request.PathBase = alternateBasePath;
+        context.Request.Path = alternateRemaining;
+    }
+    else if (context.Request.Path.StartsWithSegments(basePath, out PathString remaining))
+    {
+        context.Request.PathBase = basePath;
+        context.Request.Path = remaining;
+    }
+
+    return next();
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -20,8 +36,23 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSwagger();
-app.UseSwaggerUI(c => c.SwaggerEndpoint($"{basePath}/swagger/v1/swagger.json", "ActiveVolume Calibration API v1"));
+app.UseSwaggerUI(c => c.SwaggerEndpoint("v1/swagger.json", "ActiveVolume Calibration API v1"));
 app.UseCors(cors => cors.AllowAnyMethod().AllowAnyHeader().SetIsOriginAllowed(_ => true).AllowCredentials());
 app.MapControllers();
 app.MapGet("/", () => Results.Ok("DWIS ActiveVolume Calibration Service"));
+app.MapGet("/ActiveVolumeCalibration", () => Results.Ok(new
+{
+    Service = "DWIS ActiveVolume Calibration Service",
+    PrimaryBasePath = basePath,
+    AlternateBasePath = alternateBasePath,
+    Routes = new[]
+    {
+        "ActiveVolumeCase",
+        "ActiveVolumeCase/LightData",
+        "ActiveVolumeCaseBatchImport",
+        "Calibration",
+        "Calibration/BestMatch",
+        "CalibrationJob/{id}"
+    }
+}));
 app.Run();

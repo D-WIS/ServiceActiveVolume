@@ -10,6 +10,10 @@
     text-decoration: none;
 }
 
+.activevolume-nav a:hover {
+    background: #e8eef6;
+}
+
 .activevolume-nav-group {
     font-weight: 700;
     margin-top: 1rem;
@@ -26,4 +30,40 @@
     border-bottom: 1px solid #d0d7de;
     padding: 0.5rem;
     text-align: left;
+}
+
+.activevolume-page {
+    max-width: 980px;
+}
+
+.activevolume-page h1 {
+    color: #17324d;
+    margin: 0 0 0.75rem;
+}
+
+.activevolume-page p {
+    color: #46596c;
+    margin: 0 0 1.25rem;
+}
+
+.activevolume-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.activevolume-actions a {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #b8c7d9;
+    border-radius: 4px;
+    color: #17324d;
+    display: inline-flex;
+    min-height: 2.5rem;
+    padding: 0 1rem;
+    text-decoration: none;
+}
+
+.activevolume-actions a:hover {
+    background: #eef4fb;
 }

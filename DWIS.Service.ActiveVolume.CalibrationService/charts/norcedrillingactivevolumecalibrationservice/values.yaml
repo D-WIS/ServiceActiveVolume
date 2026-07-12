@@ -35,6 +35,7 @@ service:
     description: "A microservice for handling ActiveVolume calibration"
 env:
   BasePath: "/activevolume/api"
+  AlternateBasePath: "/activevolumecalibration/api"
   DatabasePath: "/home/activevolume-calibration.db"
   MaxConcurrentCalibrationJobs: "2"
   FieldHostURL: "http://norcedrillingfieldservice/"
@@ -56,17 +57,25 @@ ingress:
         # Regex pattern matches /activevolume/api or /ActiveVolume/api, etc.
         - path: /(?i)activevolume/api
           pathType: ImplementationSpecific
+        - path: /(?i)activevolumecalibration/api
+          pathType: ImplementationSpecific
     - host: dev.digiwells.no
       paths:
         - path: /(?i)activevolume/api
+          pathType: ImplementationSpecific
+        - path: /(?i)activevolumecalibration/api
           pathType: ImplementationSpecific
     - host: app.digiwells.no
       paths:
         - path: /(?i)activevolume/api
           pathType: ImplementationSpecific
+        - path: /(?i)activevolumecalibration/api
+          pathType: ImplementationSpecific
     - host: awe.web.intra.norceresearch.no
       paths:
         - path: /(?i)activevolume/api
+          pathType: ImplementationSpecific
+        - path: /(?i)activevolumecalibration/api
           pathType: ImplementationSpecific
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
