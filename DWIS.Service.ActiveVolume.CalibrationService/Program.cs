@@ -1,4 +1,5 @@
 using DWIS.Service.ActiveVolume.CalibrationService.Managers;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,16 +13,10 @@ builder.Services.AddSwaggerGen(config => config.CustomSchemaIds(type => type.Ful
 var app = builder.Build();
 
 var basePath = builder.Configuration["BasePath"] ?? "/activevolumecalibration/api";
-
-app.Use((context, next) =>
+app.UsePathBase(basePath);
+app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    if (context.Request.Path.StartsWithSegments(basePath, out PathString remaining))
-    {
-        context.Request.PathBase = basePath;
-        context.Request.Path = remaining;
-    }
-
-    return next();
+    ForwardedHeaders = ForwardedHeaders.XForwardedProto
 });
 
 if (app.Environment.IsDevelopment())
@@ -31,6 +26,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("v1/swagger.json", "ActiveVolume Calibration API v1"));
+app.UseRouting();
 app.UseCors(cors => cors.AllowAnyMethod().AllowAnyHeader().SetIsOriginAllowed(_ => true).AllowCredentials());
 app.MapControllers();
 app.MapGet("/", () => Results.Ok("DWIS ActiveVolume Calibration Service"));

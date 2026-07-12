@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using DWIS.Service.ActiveVolume.Model.Calibration;
 using DWIS.Service.ActiveVolume.Model.Case;
 using DWIS.Service.ActiveVolume.Model.Import;
@@ -49,7 +50,22 @@ namespace DWIS.Service.ActiveVolume.CalibrationWebPages
             }
 
             string baseUrl = BuildCalibrationApiBaseUrl(hostUrl);
-            return await httpClient_.GetFromJsonAsync<T>($"{baseUrl}/{relativeUrl}", cancellationToken);
+            try
+            {
+                return await httpClient_.GetFromJsonAsync<T>($"{baseUrl}/{relativeUrl}", cancellationToken);
+            }
+            catch (HttpRequestException)
+            {
+                return default;
+            }
+            catch (JsonException)
+            {
+                return default;
+            }
+            catch (NotSupportedException)
+            {
+                return default;
+            }
         }
 
         private static string BuildCalibrationApiBaseUrl(string hostUrl)

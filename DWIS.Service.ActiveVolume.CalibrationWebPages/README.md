@@ -30,6 +30,9 @@ The configuration includes:
 - `UnitConversionHostURL`
 - `VerticalDepthHostURL`
 
+The `*HostURL` values are service roots for server-side API clients. Browser navigation uses fixed public web app
+route paths in `ActiveVolumeCalibrationNavMenu.razor`, following the pattern used by the contextual-data web apps.
+
 ## Routes
 
 The library currently contributes:

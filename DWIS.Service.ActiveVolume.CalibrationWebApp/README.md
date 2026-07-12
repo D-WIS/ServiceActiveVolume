@@ -23,7 +23,9 @@ The project stays intentionally thin: layout, host configuration, endpoint wirin
 
 ## Configuration
 
-`appsettings.json` contains endpoint URLs used by `DWIS.Service.ActiveVolume.CalibrationWebPages`:
+`appsettings.json` contains endpoint URLs used by `DWIS.Service.ActiveVolume.CalibrationWebPages`.
+The `*HostURL` values are service roots used for server-side API calls. In Kubernetes they can be internal
+service names such as `http://norcedrillingfieldservice/`, as in the Trajectory web app.
 
 ```json
 {
@@ -49,7 +51,7 @@ FieldHostURL=http://field/
 UnitConversionHostURL=http://unit-conversion/
 ```
 
-The context service URLs mirror the services represented in `DWIS.Service.ActiveVolume.ModelSharedOut`; the calculator links are used by the reusable web navigation. As in Trajectory, host URL settings are service roots. The reusable page API helper appends `activevolumecalibration/api` for CalibrationService calls.
+The context service URLs mirror the services represented in `DWIS.Service.ActiveVolume.ModelSharedOut`. As in Trajectory, host URL settings are service roots. The reusable page API helper appends `activevolumecalibration/api` for CalibrationService calls. Browser navigation uses fixed web app route paths in the Razor menu.
 
 ## Build and Run
 
