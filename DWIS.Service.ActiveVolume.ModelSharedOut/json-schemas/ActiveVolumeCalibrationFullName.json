@@ -1,0 +1,1479 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "DWIS.Service.ActiveVolume.CalibrationService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "version": "1.0"
+  },
+  "paths": {
+    "/ActiveVolumeCase": {
+      "get": {
+        "tags": [
+          "ActiveVolumeCase"
+        ],
+        "operationId": "GetAllActiveVolumeCaseId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ActiveVolumeCase"
+        ],
+        "operationId": "PostActiveVolumeCase",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCase"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCase"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/ActiveVolumeCase/LightData": {
+      "get": {
+        "tags": [
+          "ActiveVolumeCase"
+        ],
+        "operationId": "GetAllActiveVolumeCaseLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCaseLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ActiveVolumeCase/{id}": {
+      "get": {
+        "tags": [
+          "ActiveVolumeCase"
+        ],
+        "operationId": "GetActiveVolumeCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeChunks",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCase"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ActiveVolumeCase"
+        ],
+        "operationId": "PutActiveVolumeCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCase"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCase"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ActiveVolumeCase"
+        ],
+        "operationId": "DeleteActiveVolumeCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/ActiveVolumeCase/{id}/Chunks/ChunkCount": {
+      "get": {
+        "tags": [
+          "ActiveVolumeCase"
+        ],
+        "operationId": "GetActiveVolumeCaseChunkCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ActiveVolumeCase/{id}/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "ActiveVolumeCase"
+        ],
+        "operationId": "GetActiveVolumeCaseChunk",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCaseChunk"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ActiveVolumeCase"
+        ],
+        "operationId": "PutActiveVolumeCaseChunk",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCaseChunk"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCaseChunk"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCaseChunk"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/ActiveVolumeCase/{id}/Process": {
+      "post": {
+        "tags": [
+          "ActiveVolumeCase"
+        ],
+        "operationId": "PostActiveVolumeCaseProcess",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ActiveVolumeCaseBatchImport": {
+      "get": {
+        "tags": [
+          "ActiveVolumeCaseBatchImport"
+        ],
+        "operationId": "GetAllActiveVolumeCaseBatchImport",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeCaseBatchImport"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ActiveVolumeCaseBatchImport"
+        ],
+        "operationId": "PostActiveVolumeCaseBatchImport",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeCaseBatchImport"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeCaseBatchImport"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeCaseBatchImport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/ActiveVolumeCaseBatchImport/LightData": {
+      "get": {
+        "tags": [
+          "ActiveVolumeCaseBatchImport"
+        ],
+        "operationId": "GetAllActiveVolumeCaseBatchImportLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeCaseBatchImportLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ActiveVolumeCaseBatchImport/{id}": {
+      "get": {
+        "tags": [
+          "ActiveVolumeCaseBatchImport"
+        ],
+        "operationId": "GetActiveVolumeCaseBatchImportById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeCaseBatchImport"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ActiveVolumeCaseBatchImport"
+        ],
+        "operationId": "DeleteActiveVolumeCaseBatchImportById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/Calibration": {
+      "get": {
+        "tags": [
+          "Calibration"
+        ],
+        "operationId": "GetAllCalibration",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Calibration.CalibrationRecord"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Calibration/{id}": {
+      "get": {
+        "tags": [
+          "Calibration"
+        ],
+        "operationId": "GetCalibrationById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Calibration.CalibrationRecord"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Calibration/BestMatch": {
+      "post": {
+        "tags": [
+          "Calibration"
+        ],
+        "operationId": "PostBestMatchCalibration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Calibration.BestMatchCalibrationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Calibration.BestMatchCalibrationRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Calibration.BestMatchCalibrationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Calibration.BestMatchCalibrationResult"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/CalibrationJob/{id}": {
+      "get": {
+        "tags": [
+          "CalibrationJob"
+        ],
+        "operationId": "GetCalibrationJobById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Calibration.CalibrationJob"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "DWIS.Service.ActiveVolume.CalibrationService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/ActiveVolumeCalibration": {
+      "get": {
+        "tags": [
+          "DWIS.Service.ActiveVolume.CalibrationService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DWIS.Service.ActiveVolume.Model.Calibration.ActiveVolumeContext": {
+        "type": "object",
+        "properties": {
+          "fieldID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clusterID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "wellID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "wellBoreID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "wellBoreArchitectureID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "drillStringID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "returnFlowMeasurementMode": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ReturnFlowMeasurementMode"
+          },
+          "rigName": {
+            "type": "string",
+            "nullable": true
+          },
+          "mudSystem": {
+            "type": "string",
+            "nullable": true
+          },
+          "holeSection": {
+            "type": "string",
+            "nullable": true
+          },
+          "numericFeatures": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DWIS.Service.ActiveVolume.Model.Calibration.BestMatchCalibrationRequest": {
+        "type": "object",
+        "properties": {
+          "context": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Calibration.ActiveVolumeContext"
+          },
+          "maxResults": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DWIS.Service.ActiveVolume.Model.Calibration.BestMatchCalibrationResult": {
+        "type": "object",
+        "properties": {
+          "calibration": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Calibration.CalibrationRecord"
+          },
+          "distance": {
+            "type": "number",
+            "format": "double"
+          },
+          "weight": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DWIS.Service.ActiveVolume.Model.Calibration.CalibrationJob": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "caseID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.CalibrationJobState"
+          },
+          "progress": {
+            "type": "number",
+            "format": "double"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "startedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "completedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "calibrationRecordID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DWIS.Service.ActiveVolume.Model.Calibration.CalibrationParameterSet": {
+        "type": "object",
+        "properties": {
+          "component": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.CalibrationComponent"
+          },
+          "parameters": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
+            },
+            "nullable": true
+          },
+          "standardDeviations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
+            },
+            "nullable": true
+          },
+          "lowerBounds": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
+            },
+            "nullable": true
+          },
+          "upperBounds": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
+            },
+            "nullable": true
+          },
+          "quality": {
+            "type": "number",
+            "format": "double"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DWIS.Service.ActiveVolume.Model.Calibration.CalibrationRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceCaseID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "creationDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modelVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "context": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Calibration.ActiveVolumeContext"
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Calibration.CalibrationParameterSet"
+            },
+            "nullable": true
+          },
+          "similarityRadius": {
+            "type": "number",
+            "format": "double"
+          },
+          "quality": {
+            "type": "number",
+            "format": "double"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCase": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "creationDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastModificationDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fieldID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clusterID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "wellID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "wellBoreID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "wellBoreArchitectureID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "drillStringID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "returnFlowMeasurementMode": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ReturnFlowMeasurementMode"
+          },
+          "rigName": {
+            "type": "string",
+            "nullable": true
+          },
+          "mudSystem": {
+            "type": "string",
+            "nullable": true
+          },
+          "holeSection": {
+            "type": "string",
+            "nullable": true
+          },
+          "processingState": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCaseProcessingState"
+          },
+          "processingProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "processingMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastProcessedChunkIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "chunkCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sampleCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "activeJobID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "bestCalibrationID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "calibrationQuality": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "lastCalibrationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "tags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "realtimeImportDefinition": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.DelimitedImportDefinition"
+          },
+          "chunks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCaseChunk"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCaseChunk": {
+        "type": "object",
+        "properties": {
+          "caseID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "chunkIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startTimeUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTimeUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "checksum": {
+            "type": "string",
+            "nullable": true
+          },
+          "samples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeSample"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCaseLight": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "fieldID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clusterID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "wellID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "wellBoreID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "wellBoreArchitectureID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "drillStringID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "returnFlowMeasurementMode": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ReturnFlowMeasurementMode"
+          },
+          "processingState": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCaseProcessingState"
+          },
+          "processingProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "processingMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastProcessedChunkIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "chunkCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sampleCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "activeJobID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "bestCalibrationID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "calibrationQuality": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "lastCalibrationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "creationDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastModificationDate": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCaseProcessingState": {
+        "enum": [
+          "Created",
+          "Uploading",
+          "Uploaded",
+          "Queued",
+          "Processing",
+          "Processed",
+          "Failed",
+          "Interrupted"
+        ],
+        "type": "string"
+      },
+      "DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeSample": {
+        "type": "object",
+        "properties": {
+          "timestampUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "activeVolume": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "flowrateIn": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "flowPaddlePosition": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "coriolisVolumetricFlowrate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "coriolisMassFlowrate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "returnMudDensity": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "cuttingsRecoveryRate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "cuttingsParticleSizeDistribution": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "nullable": true
+          },
+          "standPipePressure": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "inletMudTemperature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "outletMudTemperature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "bottomOfStringDepth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "bottomHoleDepth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "axialPipeVelocity": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "additionalSignals": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "format": "double"
+            },
+            "nullable": true
+          },
+          "qualityFlags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DWIS.Service.ActiveVolume.Model.Case.CalibrationComponent": {
+        "enum": [
+          "ReturnFlow",
+          "LowFlowSurrogate",
+          "Compressibility",
+          "ThermalExpansion",
+          "SurfaceRetention",
+          "MudFilm",
+          "FormationExchangeDiagnostic"
+        ],
+        "type": "string"
+      },
+      "DWIS.Service.ActiveVolume.Model.Case.CalibrationJobState": {
+        "enum": [
+          "Queued",
+          "Running",
+          "Succeeded",
+          "Failed",
+          "Cancelled"
+        ],
+        "type": "string"
+      },
+      "DWIS.Service.ActiveVolume.Model.Case.ReturnFlowMeasurementMode": {
+        "enum": [
+          "Unknown",
+          "FlowPaddle",
+          "CoriolisVolumetric",
+          "CoriolisMass"
+        ],
+        "type": "string"
+      },
+      "DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeCaseBatchImport": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "creationDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "processingState": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCaseProcessingState"
+          },
+          "processingProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "processingMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeCaseBatchImportItem"
+            },
+            "nullable": true
+          },
+          "light": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeCaseBatchImportLight"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeCaseBatchImportItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileName": {
+            "type": "string",
+            "nullable": true
+          },
+          "caseMetadata": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCase"
+          },
+          "importDefinition": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.DelimitedImportDefinition"
+          },
+          "createdCaseID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "processingState": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCaseProcessingState"
+          },
+          "processingMessage": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeCaseBatchImportLight": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "creationDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "processingState": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Case.ActiveVolumeCaseProcessingState"
+          },
+          "processingProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "processingMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "itemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdCaseCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeImportFileFormat": {
+        "enum": [
+          "DelimitedText",
+          "FixedWidthText",
+          "Parquet"
+        ],
+        "type": "string"
+      },
+      "DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeSignalKind": {
+        "enum": [
+          "Ignore",
+          "Timestamp",
+          "RelativeSeconds",
+          "ActiveVolume",
+          "FlowrateIn",
+          "FlowPaddlePosition",
+          "CoriolisVolumetricFlowrate",
+          "CoriolisMassFlowrate",
+          "ReturnMudDensity",
+          "CuttingsRecoveryRate",
+          "StandPipePressure",
+          "InletMudTemperature",
+          "OutletMudTemperature",
+          "BottomOfStringDepth",
+          "BottomHoleDepth",
+          "AxialPipeVelocity",
+          "CuttingsParticleSizeDistribution",
+          "ShakerLoadEstimate"
+        ],
+        "type": "string"
+      },
+      "DWIS.Service.ActiveVolume.Model.Import.DelimitedColumnMapping": {
+        "type": "object",
+        "properties": {
+          "columnIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fieldName": {
+            "type": "string",
+            "nullable": true
+          },
+          "fixedWidthStartIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fixedWidthLength": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "signalKind": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeSignalKind"
+          },
+          "unit": {
+            "type": "string",
+            "nullable": true
+          },
+          "physicalQuantity": {
+            "type": "string",
+            "nullable": true
+          },
+          "depthReferenceName": {
+            "type": "string",
+            "nullable": true
+          },
+          "referenceSystem": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DWIS.Service.ActiveVolume.Model.Import.DelimitedFileSeparator": {
+        "enum": [
+          "Comma",
+          "Semicolon",
+          "Tab",
+          "Whitespace",
+          "Custom",
+          "FixedWidth"
+        ],
+        "type": "string"
+      },
+      "DWIS.Service.ActiveVolume.Model.Import.DelimitedImportDefinition": {
+        "type": "object",
+        "properties": {
+          "fileFormat": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeImportFileFormat"
+          },
+          "separator": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.DelimitedFileSeparator"
+          },
+          "customSeparator": {
+            "type": "string",
+            "nullable": true
+          },
+          "hasHeader": {
+            "type": "boolean"
+          },
+          "relativeTimeOriginUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "timestampFormat": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestampStorageKind": {
+            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.TimestampStorageKind"
+          },
+          "localTimeZoneId": {
+            "type": "string",
+            "nullable": true
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.DelimitedColumnMapping"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DWIS.Service.ActiveVolume.Model.Import.TimestampStorageKind": {
+        "enum": [
+          "Utc",
+          "LocalTime"
+        ],
+        "type": "string"
+      }
+    }
+  }
+}

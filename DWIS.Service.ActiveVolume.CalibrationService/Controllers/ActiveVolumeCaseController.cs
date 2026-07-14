@@ -59,6 +59,12 @@ namespace DWIS.Service.ActiveVolume.CalibrationService.Controllers
             return store_.UpsertCase(data) ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
         }
 
+        [HttpDelete("{id}", Name = "DeleteActiveVolumeCaseById")]
+        public ActionResult DeleteActiveVolumeCaseById(Guid id)
+        {
+            return store_.DeleteCase(id) ? Ok() : NotFound();
+        }
+
         [HttpGet("{id}/Chunks/ChunkCount", Name = "GetActiveVolumeCaseChunkCount")]
         public ActionResult<int> GetActiveVolumeCaseChunkCount(Guid id)
         {

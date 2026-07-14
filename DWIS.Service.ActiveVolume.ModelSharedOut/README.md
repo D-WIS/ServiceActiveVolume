@@ -1,8 +1,8 @@
 # DWIS.Service.ActiveVolume.ModelSharedOut
 
-`DWIS.Service.ActiveVolume.ModelSharedOut` owns the generated output/client model intended for ActiveVolume clients such as the CalibrationWebApp and external UI hosts.
+`DWIS.Service.ActiveVolume.ModelSharedOut` owns the generated output/client model intended for ActiveVolume clients such as the CalibrationWebPages package, CalibrationWebApp, and external UI hosts.
 
-The current schema inputs mirror `ModelSharedIn`, giving client applications the same contextual contracts for field, cluster, well, wellbore, wellbore architecture, and drill-string. ActiveVolume-specific REST API schemas can be added later when the CalibrationService Swagger contract is exported and versioned.
+The schema inputs include the ActiveVolume CalibrationService Swagger contract plus the contextual contracts for field, cluster, well, wellbore, wellbore architecture, drill-string, and rig.
 
 ## Source Schemas
 
@@ -14,6 +14,8 @@ The project includes source schemas in `json-schemas/` for:
 - WellBore
 - WellBoreArchitecture
 - DrillString
+- Rig
+- ActiveVolumeCalibration
 
 ## Generated Outputs
 
@@ -25,13 +27,13 @@ The project includes source schemas in `json-schemas/` for:
 From the solution root:
 
 ```bash
+dotnet build DWIS.Service.ActiveVolume.CalibrationService/DWIS.Service.ActiveVolume.CalibrationService.csproj
 dotnet run --project DWIS.Service.ActiveVolume.ModelSharedOut/DWIS.Service.ActiveVolume.ModelSharedOut.csproj
 ```
 
-Regenerate this project whenever the client-facing schema set changes.
+The CalibrationService Debug build writes `json-schemas/ActiveVolumeCalibrationFullName.json` using the local Swagger CLI tool. Regenerate this project whenever the CalibrationService API or client-facing schema set changes.
 
 ## Used By
 
-- `DWIS.Service.ActiveVolume.CalibrationWebApp`
-
-The reusable `CalibrationWebPages` project currently uses ActiveVolume DTOs directly; this project remains the place for generated client-facing shared models.
+- `DWIS.Service.ActiveVolume.CalibrationWebPages`, which includes `ActiveVolumeMergedModel.cs` as generated source in the same style as Trajectory WebPages.
+- `DWIS.Service.ActiveVolume.CalibrationWebApp`, through the reusable page package.

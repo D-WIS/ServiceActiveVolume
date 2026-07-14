@@ -36,19 +36,22 @@ The service exposes controller routes under the application root:
 - `GET ActiveVolumeCase/{id}`
 - `POST ActiveVolumeCase`
 - `PUT ActiveVolumeCase/{id}`
+- `DELETE ActiveVolumeCase/{id}`
 - `GET ActiveVolumeCase/{id}/Chunks/ChunkCount`
 - `GET ActiveVolumeCase/{id}/Chunks/{chunkIndex}`
 - `PUT ActiveVolumeCase/{id}/Chunks/{chunkIndex}`
 - `POST ActiveVolumeCase/{id}/Process`
 - `GET ActiveVolumeCaseBatchImport`
+- `GET ActiveVolumeCaseBatchImport/LightData`
 - `GET ActiveVolumeCaseBatchImport/{id}`
 - `POST ActiveVolumeCaseBatchImport`
+- `DELETE ActiveVolumeCaseBatchImport/{id}`
 - `GET Calibration`
 - `GET Calibration/{id}`
 - `POST Calibration/BestMatch`
 - `GET CalibrationJob/{id}`
 
-Swagger is enabled by the project and can be used during development to inspect the live API contract.
+Swagger is enabled by the project and can be used during development to inspect the live API contract. In Debug builds, the project also exports the service contract to `DWIS.Service.ActiveVolume.ModelSharedOut/json-schemas/ActiveVolumeCalibrationFullName.json`, following the Trajectory service pattern.
 
 ## Configuration
 
@@ -90,6 +93,8 @@ The service external base path is `/activevolumecalibration/api`.
 dotnet build DWIS.Service.ActiveVolume.CalibrationService/DWIS.Service.ActiveVolume.CalibrationService.csproj
 dotnet run --project DWIS.Service.ActiveVolume.CalibrationService/DWIS.Service.ActiveVolume.CalibrationService.csproj
 ```
+
+The Debug build uses the repository local `Swashbuckle.AspNetCore.Cli` tool manifest. Restore it with `dotnet tool restore` if needed.
 
 ## Docker
 

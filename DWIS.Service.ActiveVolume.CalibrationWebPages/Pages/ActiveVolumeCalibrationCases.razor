@@ -6,7 +6,9 @@
 {
     <MudStack Spacing="3">
         <MudStack Row AlignItems="AlignItems.Center">
-            <MudText Typo="Typo.h5">Active Volume Cases</MudText>
+            <MudText Typo="Typo.h6">Active Volume Cases</MudText>
+            <MudButton OnClick="CreateCaseAsync" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
+            <MudButton OnClick="DeleteSelectedCasesAsync" Color="@Color.Error" Class="add-item-btn" Disabled="@(!selectedCases_.Any() || isBusy_)">Delete</MudButton>
             <MudSpacer />
             <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ReloadCasesAsync">Refresh</MudButton>
         </MudStack>
@@ -17,16 +19,15 @@
         }
         else
         {
-            <MudTable Items="@cases_" T="ActiveVolumeCaseLight" Hover="true" Dense="true" Bordered="true" OnRowClick="OnCaseRowClicked">
+            <MudTable Items="@cases_" T="ActiveVolumeCaseLight" MultiSelection="true" @bind-SelectedItems="selectedCases_" Hover="true" Dense="true" Bordered="true" OnRowClick="OnCaseRowClicked">
                 <HeaderContent>
                     <MudTh>Name</MudTh>
                     <MudTh>Status</MudTh>
                     <MudTh>Progress</MudTh>
-                    <MudTh>Chunks</MudTh>
-                    <MudTh>Samples</MudTh>
                     <MudTh>Return Flow</MudTh>
                     <MudTh>Calibration</MudTh>
                     <MudTh>Last Updated</MudTh>
+                    <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Name">@context.Name</MudTd>
@@ -41,11 +42,14 @@
                         <MudProgressLinear Value="@ToPercent(context.ProcessingProgress)" Color="@GetProcessingProgressColor(context.ProcessingState)" />
                         <MudText Typo="Typo.caption">@FormatPercent(context.ProcessingProgress)</MudText>
                     </MudTd>
-                    <MudTd DataLabel="Chunks">@context.ChunkCount</MudTd>
-                    <MudTd DataLabel="Samples">@context.SampleCount</MudTd>
                     <MudTd DataLabel="Return Flow">@context.ReturnFlowMeasurementMode</MudTd>
                     <MudTd DataLabel="Calibration">@FormatCalibrationSummary(context)</MudTd>
                     <MudTd DataLabel="Last Updated">@FormatDate(context.LastModificationDate)</MudTd>
+                    <MudTd>
+                        <span @onclick:stopPropagation="true">
+                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="(() => DeleteCaseAsync(context))" />
+                        </span>
+                    </MudTd>
                 </RowTemplate>
                 <NoRecordsContent>
                     <MudText>No cases have been stored yet.</MudText>
@@ -56,13 +60,27 @@
 }
 else
 {
+    <MudUnitAndReferenceChoiceTag @ref="unitReferenceTag_"
+                                  HttpHost="@Api.HostNameUnitConversion"
+                                  HttpBasePath="@Api.HostBasePathUnitConversion"
+                                  HttpController="UnitSystem/"
+                                  UnitSystemName="@ActiveVolumeCalibrationUnitAndReferenceDataUtils.UnitAndReferenceParameters.UnitSystemName"
+                                  UnitSystemNameChanged="@ActiveVolumeCalibrationUnitAndReferenceDataUtils.UpdateUnitSystemName"
+                                  DepthReferenceName="@ActiveVolumeCalibrationUnitAndReferenceDataUtils.UnitAndReferenceParameters.DepthReferenceName"
+                                  DepthReferenceNameChanged="@ActiveVolumeCalibrationUnitAndReferenceDataUtils.UpdateDepthReferenceName"
+                                  GroundMudLineDepthReferenceSource="@ActiveVolumeCalibrationUnitAndReferenceDataUtils.GroundMudLineDepthReferenceSource"
+                                  MeanSeaLevelDepthReferenceSource="@ActiveVolumeCalibrationUnitAndReferenceDataUtils.MeanSeaLevelDepthReferenceSource"
+                                  SeaWaterLevelDepthReferenceSource="@ActiveVolumeCalibrationUnitAndReferenceDataUtils.SeaWaterLevelDepthReferenceSource"
+                                  RotaryTableDepthReferenceSource="@ActiveVolumeCalibrationUnitAndReferenceDataUtils.RotaryTableDepthReferenceSource">
     <MudStack Spacing="3">
         <MudStack Row AlignItems="AlignItems.Center">
             <MudText Typo="Typo.h5">Edit Active Volume Case</MudText>
             <MudSpacer />
-            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="SaveCaseAsync" Disabled="@(currentCase_ is null || isBusy_)">Save</MudButton>
-            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ProcessCaseAsync" Disabled="@(currentCase_ is null || isBusy_)">Process</MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditorAsync">Close</MudButton>
+            <MudContainer Class="d-flex flex-row justify-end pa-0">
+                <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveCaseAsync" Disabled="@(currentCase_ is null || isBusy_)">Save</MudButton>
+                <MudButton Class="me-1" Variant="Variant.Outlined" Color="Color.Primary" OnClick="ProcessCaseAsync" Disabled="@(currentCase_ is null || isBusy_)">Process</MudButton>
+                <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditorAsync">Close</MudButton>
+            </MudContainer>
         </MudStack>
 
         @if (selectedCaseLight_ is not null)
@@ -77,14 +95,6 @@ else
                         <MudText Typo="Typo.caption">Processing</MudText>
                         <MudProgressLinear Value="@ToPercent(selectedCaseLight_.ProcessingProgress)" Color="@GetProcessingProgressColor(selectedCaseLight_.ProcessingState)" />
                         <MudText Typo="Typo.caption">@selectedCaseLight_.ProcessingMessage</MudText>
-                    </MudItem>
-                    <MudItem xs="6" md="2">
-                        <MudText Typo="Typo.caption">Chunks</MudText>
-                        <MudText>@selectedCaseLight_.ChunkCount</MudText>
-                    </MudItem>
-                    <MudItem xs="6" md="2">
-                        <MudText Typo="Typo.caption">Samples</MudText>
-                        <MudText>@selectedCaseLight_.SampleCount</MudText>
                     </MudItem>
                 </MudGrid>
             </MudPaper>
@@ -112,35 +122,201 @@ else
                             }
                         </MudSelect>
                     </MudItem>
-                    <MudItem xs="12" md="3">
-                        <MudTextField @bind-Value="currentCase_.RigName" Label="Rig" ShrinkLabel />
+                    <MudItem xs="12">
+                        <MudGrid>
+                            <MudItem xs="12" md="4">
+                                <MudSelect T="Guid?" Label="Field" Value="@SelectedFieldId" ValueChanged="OnFieldChanged" ShrinkLabel Clearable="true">
+                                    @foreach (FieldLight field in AvailableFields)
+                                    {
+                                        <MudSelectItem T="Guid?" Value="@field.MetaInfo.ID">@field.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12" md="4">
+                                <MudSelect T="Guid?" Label="Cluster" Value="@SelectedClusterId" ValueChanged="OnClusterChanged" ShrinkLabel Clearable="true">
+                                    @foreach (ClusterLight cluster in AvailableClusters)
+                                    {
+                                        <MudSelectItem T="Guid?" Value="@cluster.MetaInfo.ID">@cluster.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12" md="4">
+                                <MudSelect T="Guid?" Label="Well" Value="@SelectedWellId" ValueChanged="OnWellChanged" ShrinkLabel Clearable="true">
+                                    @foreach (Well well in AvailableWells)
+                                    {
+                                        <MudSelectItem T="Guid?" Value="@well.MetaInfo.ID">@well.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12" md="4">
+                                <MudSelect T="Guid?" Label="WellBore" Value="@SelectedWellBoreId" ValueChanged="OnWellBoreChanged" ShrinkLabel Clearable="true">
+                                    @foreach (WellBore wellBore in AvailableWellBores)
+                                    {
+                                        <MudSelectItem T="Guid?" Value="@wellBore.MetaInfo.ID">@wellBore.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12" md="4">
+                                <MudSelect T="Guid?" Label="WellBore Architecture" Value="@SelectedWellBoreArchitectureId" ValueChanged="OnWellBoreArchitectureChanged" ShrinkLabel Clearable="true">
+                                    @foreach (WellBoreArchitecture architecture in AvailableWellBoreArchitectures)
+                                    {
+                                        <MudSelectItem T="Guid?" Value="@architecture.MetaInfo.ID">@architecture.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12" md="4">
+                                <MudSelect T="Guid?" Label="Drill String" Value="@SelectedDrillStringId" ValueChanged="OnDrillStringChanged" ShrinkLabel Clearable="true">
+                                    @foreach (DrillStringLight drillString in AvailableDrillStrings)
+                                    {
+                                        <MudSelectItem T="Guid?" Value="@drillString.MetaInfo.ID">@drillString.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                        </MudGrid>
                     </MudItem>
-                    <MudItem xs="12" md="3">
-                        <MudTextField @bind-Value="currentCase_.MudSystem" Label="Mud system" ShrinkLabel />
-                    </MudItem>
-                    <MudItem xs="12" md="3">
-                        <MudTextField @bind-Value="currentCase_.HoleSection" Label="Hole section" ShrinkLabel />
-                    </MudItem>
-                    <MudItem xs="12" md="3">
-                        <MudTextField Value="@FormatGuid(currentCase_.FieldID)" Label="Field ID" ReadOnly="true" ShrinkLabel />
-                    </MudItem>
-                    <MudItem xs="12" md="3">
-                        <MudTextField Value="@FormatGuid(currentCase_.ClusterID)" Label="Cluster ID" ReadOnly="true" ShrinkLabel />
-                    </MudItem>
-                    <MudItem xs="12" md="3">
-                        <MudTextField Value="@FormatGuid(currentCase_.WellID)" Label="Well ID" ReadOnly="true" ShrinkLabel />
-                    </MudItem>
-                    <MudItem xs="12" md="3">
-                        <MudTextField Value="@FormatGuid(currentCase_.WellBoreID)" Label="WellBore ID" ReadOnly="true" ShrinkLabel />
-                    </MudItem>
-                    <MudItem xs="12" md="6">
-                        <MudTextField Value="@FormatGuid(currentCase_.WellBoreArchitectureID)" Label="WellBore Architecture ID" ReadOnly="true" ShrinkLabel />
-                    </MudItem>
-                    <MudItem xs="12" md="6">
-                        <MudTextField Value="@FormatGuid(currentCase_.DrillStringID)" Label="Drill String ID" ReadOnly="true" ShrinkLabel />
+                    <MudItem xs="12">
+                        <MudGrid>
+                            <MudItem xs="12" md="4">
+                                <MudTextField Value="@DerivedRigName" Label="Rig" ReadOnly="true" ShrinkLabel />
+                            </MudItem>
+                            <MudItem xs="12" md="4">
+                                <MudTextField Value="@DerivedMudSystem" Label="Mud system" ReadOnly="true" ShrinkLabel />
+                            </MudItem>
+                            <MudItem xs="12" md="4">
+                                <MudTextField Value="@DerivedHoleSection" Label="Hole section" ReadOnly="true" ShrinkLabel />
+                            </MudItem>
+                        </MudGrid>
                     </MudItem>
                 </MudGrid>
             </MudPaper>
+
+            <MudExpansionPanels Elevation="1">
+                <MudExpansionPanel Text="Realtime Data Import">
+                    <MudGrid>
+                        <MudItem xs="12" md="3">
+                            <MudSelect T="ActiveVolumeImportFileFormat" Label="File format" Value="@RealtimeImportDefinition.FileFormat" ValueChanged="OnImportFileFormatChanged" ShrinkLabel>
+                                @foreach (ActiveVolumeImportFileFormat format in Enum.GetValues<ActiveVolumeImportFileFormat>())
+                                {
+                                    <MudSelectItem T="ActiveVolumeImportFileFormat" Value="@format">@FormatImportFileFormat(format)</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        @if (RealtimeImportDefinition.FileFormat == ActiveVolumeImportFileFormat.DelimitedText)
+                        {
+                            <MudItem xs="12" md="3">
+                                <MudSelect T="DelimitedFileSeparator" Label="Separator" @bind-Value="RealtimeImportDefinition.Separator" ShrinkLabel>
+                                    @foreach (DelimitedFileSeparator separator in DelimitedSeparators)
+                                    {
+                                        <MudSelectItem T="DelimitedFileSeparator" Value="@separator">@FormatSeparator(separator)</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12" md="3">
+                                <MudTextField @bind-Value="RealtimeImportDefinition.CustomSeparator" Label="Custom separator" ShrinkLabel Disabled="@(RealtimeImportDefinition.Separator != DelimitedFileSeparator.Custom)" />
+                            </MudItem>
+                            <MudItem xs="12" md="3" Class="d-flex align-center">
+                                <MudCheckBox T="bool" @bind-Value="RealtimeImportDefinition.HasHeader" Label="Header row" />
+                            </MudItem>
+                        }
+                        else if (RealtimeImportDefinition.FileFormat == ActiveVolumeImportFileFormat.FixedWidthText)
+                        {
+                            <MudItem xs="12" md="3" Class="d-flex align-center">
+                                <MudCheckBox T="bool" @bind-Value="RealtimeImportDefinition.HasHeader" Label="Header row" />
+                            </MudItem>
+                        }
+                        <MudItem xs="12" md="3">
+                            <MudTextField @bind-Value="RealtimeImportDefinition.TimestampFormat" Label="Timestamp format" ShrinkLabel />
+                        </MudItem>
+                        <MudItem xs="12" md="3">
+                            <MudSelect T="TimestampStorageKind" Label="Timestamp zone" @bind-Value="RealtimeImportDefinition.TimestampStorageKind" ShrinkLabel>
+                                @foreach (TimestampStorageKind kind in Enum.GetValues<TimestampStorageKind>())
+                                {
+                                    <MudSelectItem T="TimestampStorageKind" Value="@kind">@FormatTimestampKind(kind)</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudSelect T="string" Label="Local time zone" @bind-Value="RealtimeImportDefinition.LocalTimeZoneId" ShrinkLabel Clearable="true" Disabled="@(RealtimeImportDefinition.TimestampStorageKind != TimestampStorageKind.LocalTime)">
+                                @foreach (string timeZoneId in TimeZoneIds)
+                                {
+                                    <MudSelectItem T="string" Value="@timeZoneId">@timeZoneId</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudStack Row AlignItems="AlignItems.Center" Class="mt-4">
+                        <MudText Typo="Typo.subtitle1">Signal mappings</MudText>
+                        <MudButton OnClick="AddImportColumnMapping" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
+                    </MudStack>
+                    <MudTable Items="@ImportColumns" T="DelimitedColumnMapping" Dense="true" Hover="true" Bordered="true">
+                        <HeaderContent>
+                            <MudTh>Signal</MudTh>
+                            <MudTh>Source</MudTh>
+                            <MudTh>Fixed width</MudTh>
+                            <MudTh>Quantity</MudTh>
+                            <MudTh>Unit</MudTh>
+                            <MudTh>Depth reference</MudTh>
+                            <MudTh></MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Signal">
+                                <MudSelect T="ActiveVolumeSignalKind" Value="@context.SignalKind" ValueChanged="@((ActiveVolumeSignalKind signalKind) => OnImportSignalKindChanged(context, signalKind))" Dense="true" ShrinkLabel>
+                                    @foreach (ActiveVolumeSignalKind signalKind in ImportableSignalKinds)
+                                    {
+                                        <MudSelectItem T="ActiveVolumeSignalKind" Value="@signalKind">@FormatSignalKind(signalKind)</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudTd>
+                            <MudTd DataLabel="Source">
+                                @if (RealtimeImportDefinition.FileFormat == ActiveVolumeImportFileFormat.Parquet)
+                                {
+                                    <MudTextField @bind-Value="context.FieldName" Label="Field" ShrinkLabel />
+                                }
+                                else
+                                {
+                                    <MudNumericField T="int" @bind-Value="context.ColumnIndex" Label="Column" Min="0" ShrinkLabel />
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Fixed width">
+                                <MudGrid>
+                                    <MudItem xs="6">
+                                        <MudNumericField T="int" @bind-Value="context.FixedWidthStartIndex" Label="Start" Min="0" ShrinkLabel Disabled="@(RealtimeImportDefinition.FileFormat != ActiveVolumeImportFileFormat.FixedWidthText)" />
+                                    </MudItem>
+                                    <MudItem xs="6">
+                                        <MudNumericField T="int" @bind-Value="context.FixedWidthLength" Label="Length" Min="0" ShrinkLabel Disabled="@(RealtimeImportDefinition.FileFormat != ActiveVolumeImportFileFormat.FixedWidthText)" />
+                                    </MudItem>
+                                </MudGrid>
+                            </MudTd>
+                            <MudTd DataLabel="Quantity">
+                                <MudTextField Value="@context.PhysicalQuantity" ReadOnly="true" ShrinkLabel />
+                            </MudTd>
+                            <MudTd DataLabel="Unit">
+                                <MudSelect T="string" Value="@context.Unit" ValueChanged="@((string unit) => context.Unit = unit)" Dense="true" ShrinkLabel Disabled="@(!SignalHasUnit(context.SignalKind))">
+                                    @foreach (string unit in GetUnitChoices(context.SignalKind))
+                                    {
+                                        <MudSelectItem T="string" Value="@unit">@unit</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudTd>
+                            <MudTd DataLabel="Depth reference">
+                                <MudSelect T="string" Value="@context.DepthReferenceName" ValueChanged="@((string referenceName) => context.DepthReferenceName = referenceName)" Dense="true" ShrinkLabel Disabled="@(!SignalUsesDepthReference(context.SignalKind))">
+                                    @foreach (string referenceName in DepthReferenceNames)
+                                    {
+                                        <MudSelectItem T="string" Value="@referenceName">@referenceName</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudTd>
+                            <MudTd>
+                                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => RemoveImportColumnMapping(context))" />
+                            </MudTd>
+                        </RowTemplate>
+                        <NoRecordsContent>
+                            <MudText>No realtime signal mappings have been configured.</MudText>
+                        </NoRecordsContent>
+                    </MudTable>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
 
             <MudPaper Class="pa-4" Elevation="1">
                 <MudText Typo="Typo.h6">Calibration Result</MudText>
@@ -194,26 +370,148 @@ else
             </MudPaper>
         }
     </MudStack>
+    </MudUnitAndReferenceChoiceTag>
 }
 
 @code {
     private List<ActiveVolumeCaseLight>? cases_;
+    private HashSet<ActiveVolumeCaseLight> selectedCases_ = new();
     private ActiveVolumeCaseLight? selectedCaseLight_;
     private ActiveVolumeCase? currentCase_;
     private CalibrationRecord? selectedCalibration_;
+    private MudUnitAndReferenceChoiceTag? unitReferenceTag_;
+    private List<FieldLight> fieldList_ = new();
+    private List<ClusterLight> clusterList_ = new();
+    private List<Well> wellList_ = new();
+    private List<WellBore> wellBoreList_ = new();
+    private List<WellBoreArchitecture> wellBoreArchitectureList_ = new();
+    private List<DrillStringLight> drillStringList_ = new();
+    private List<Rig> rigList_ = new();
     private bool isEditing_;
     private bool isLoadingCase_;
     private bool isLoadingCalibration_;
     private bool isBusy_;
 
+    private Guid? SelectedFieldId => ToNullableGuid(currentCase_?.FieldID);
+    private Guid? SelectedClusterId => ToNullableGuid(currentCase_?.ClusterID);
+    private Guid? SelectedWellId => ToNullableGuid(currentCase_?.WellID);
+    private Guid? SelectedWellBoreId => ToNullableGuid(currentCase_?.WellBoreID);
+    private Guid? SelectedWellBoreArchitectureId => ToNullableGuid(currentCase_?.WellBoreArchitectureID);
+    private Guid? SelectedDrillStringId => ToNullableGuid(currentCase_?.DrillStringID);
+    private string DerivedRigName => GetDerivedRigName();
+    private string DerivedMudSystem => GetDerivedMudSystem();
+    private string DerivedHoleSection => GetDerivedHoleSection();
+    private DelimitedImportDefinition RealtimeImportDefinition => EnsureRealtimeImportDefinition();
+    private List<DelimitedColumnMapping> ImportColumns => RealtimeImportDefinition.Columns?.ToList() ?? new List<DelimitedColumnMapping>();
+
+    private static IReadOnlyList<DelimitedFileSeparator> DelimitedSeparators { get; } =
+        new[] { DelimitedFileSeparator.Comma, DelimitedFileSeparator.Semicolon, DelimitedFileSeparator.Tab, DelimitedFileSeparator.Whitespace, DelimitedFileSeparator.Custom };
+
+    private static IReadOnlyList<string> DepthReferenceNames { get; } =
+        new[] { "WGS84", "Rotary table", "Ground/Mud line", "Mean sea level", "Sea water level" };
+
+    private static IReadOnlyList<string> TimeZoneIds { get; } =
+        TimeZoneInfo.GetSystemTimeZones().Select(timeZone => timeZone.Id).ToList();
+
+    private static IReadOnlyList<ActiveVolumeSignalKind> ImportableSignalKinds { get; } =
+        Enum.GetValues<ActiveVolumeSignalKind>().ToList();
+
+    private List<FieldLight> AvailableFields =>
+        fieldList_.Where(item => item?.MetaInfo != null).OrderBy(item => item.Name).ToList();
+
+    private List<ClusterLight> AvailableClusters =>
+        clusterList_
+            .Where(item =>
+                item?.MetaInfo != null &&
+                !item.IsSingleWell &&
+                (SelectedFieldId is null || item.FieldID == SelectedFieldId))
+            .OrderBy(item => item.Name)
+            .ToList();
+
+    private List<Well> AvailableWells =>
+        wellList_
+            .Where(item =>
+                item?.MetaInfo != null &&
+                (SelectedClusterId is null || item.IsSingleWell || item.ClusterID == SelectedClusterId))
+            .OrderBy(item => item.Name)
+            .ToList();
+
+    private List<WellBore> AvailableWellBores =>
+        wellBoreList_
+            .Where(item =>
+                item?.MetaInfo != null &&
+                (SelectedWellId is null || item.WellID == SelectedWellId))
+            .OrderBy(item => item.Name)
+            .ToList();
+
+    private List<WellBoreArchitecture> AvailableWellBoreArchitectures =>
+        wellBoreArchitectureList_
+            .Where(item =>
+                item?.MetaInfo != null &&
+                (SelectedWellBoreId is null || item.WellBoreID == SelectedWellBoreId))
+            .OrderBy(item => item.Name)
+            .ToList();
+
+    private List<DrillStringLight> AvailableDrillStrings =>
+        drillStringList_
+            .Where(item =>
+                item?.MetaInfo != null &&
+                (SelectedWellBoreId is null || item.WellBoreID == SelectedWellBoreId))
+            .OrderBy(item => item.Name)
+            .ToList();
+
     protected override async Task OnInitializedAsync()
     {
-        await ReloadCasesAsync();
+        await Task.WhenAll(ReloadCasesAsync(), LoadContextDataAsync());
     }
 
     private async Task ReloadCasesAsync()
     {
         cases_ = await Api.GetCasesAsync();
+        selectedCases_.Clear();
+    }
+
+    private async Task LoadContextDataAsync()
+    {
+        Task<List<FieldLight>> fieldsTask = Api.GetFieldsAsync();
+        Task<List<ClusterLight>> clustersTask = Api.GetClustersAsync();
+        Task<List<Well>> wellsTask = Api.GetWellsAsync();
+        Task<List<WellBore>> wellBoresTask = Api.GetWellBoresAsync();
+        Task<List<WellBoreArchitecture>> architecturesTask = Api.GetWellBoreArchitecturesAsync();
+        Task<List<DrillStringLight>> drillStringsTask = Api.GetDrillStringsAsync();
+        Task<List<Rig>> rigsTask = Api.GetRigsAsync();
+
+        await Task.WhenAll(fieldsTask, clustersTask, wellsTask, wellBoresTask, architecturesTask, drillStringsTask, rigsTask);
+
+        fieldList_ = fieldsTask.Result;
+        clusterList_ = clustersTask.Result;
+        wellList_ = wellsTask.Result;
+        wellBoreList_ = wellBoresTask.Result;
+        wellBoreArchitectureList_ = architecturesTask.Result;
+        drillStringList_ = drillStringsTask.Result;
+        rigList_ = rigsTask.Result;
+    }
+
+    private Task CreateCaseAsync()
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        currentCase_ = new ActiveVolumeCase
+        {
+            Id = Guid.Empty,
+            Name = "New active volume case",
+            CreationDate = now,
+            LastModificationDate = now,
+            ProcessingState = ActiveVolumeCaseProcessingState.Created,
+            Tags = new Dictionary<string, string>(),
+            RealtimeImportDefinition = CreateDefaultImportDefinition(),
+            Chunks = new List<ActiveVolumeCaseChunk>()
+        };
+        selectedCaseLight_ = ToLight(currentCase_);
+        selectedCalibration_ = null;
+        isEditing_ = true;
+        isLoadingCase_ = false;
+        isLoadingCalibration_ = false;
+        return Task.CompletedTask;
     }
 
     private async Task OnCaseRowClicked(TableRowClickEventArgs<ActiveVolumeCaseLight> args)
@@ -230,7 +528,8 @@ else
         selectedCalibration_ = null;
         currentCase_ = null;
 
-        currentCase_ = await Api.GetCaseAsync(selectedCase.ID, includeChunks: false);
+        currentCase_ = await Api.GetCaseAsync(selectedCase.Id, includeChunks: false);
+        EnsureRealtimeImportDefinition();
         isLoadingCase_ = false;
 
         if (currentCase_?.BestCalibrationID is Guid calibrationId)
@@ -249,10 +548,52 @@ else
         }
 
         isBusy_ = true;
+        EnsureRealtimeImportDefinition();
+        UpdateDerivedContextFields();
         currentCase_.LastModificationDate = DateTimeOffset.UtcNow;
         bool saved = await Api.SaveCaseAsync(currentCase_);
         isBusy_ = false;
         Snackbar.Add(saved ? "Active volume case saved." : "Could not save active volume case.", saved ? Severity.Success : Severity.Error);
+        await ReloadCasesAsync();
+    }
+
+    private async Task DeleteCaseAsync(ActiveVolumeCaseLight activeCase)
+    {
+        isBusy_ = true;
+        bool deleted = await Api.DeleteCaseAsync(activeCase.Id);
+        isBusy_ = false;
+        Snackbar.Add(deleted ? "Active volume case deleted." : "Could not delete active volume case.", deleted ? Severity.Success : Severity.Error);
+        if (currentCase_?.Id == activeCase.Id)
+        {
+            currentCase_ = null;
+            selectedCaseLight_ = null;
+            selectedCalibration_ = null;
+            isEditing_ = false;
+        }
+
+        await ReloadCasesAsync();
+    }
+
+    private async Task DeleteSelectedCasesAsync()
+    {
+        List<ActiveVolumeCaseLight> casesToDelete = selectedCases_.ToList();
+        if (casesToDelete.Count == 0)
+        {
+            return;
+        }
+
+        isBusy_ = true;
+        int deletedCount = 0;
+        foreach (ActiveVolumeCaseLight activeCase in casesToDelete)
+        {
+            if (await Api.DeleteCaseAsync(activeCase.Id))
+            {
+                deletedCount++;
+            }
+        }
+
+        isBusy_ = false;
+        Snackbar.Add($"Deleted {deletedCount} of {casesToDelete.Count} selected active volume cases.", deletedCount == casesToDelete.Count ? Severity.Success : Severity.Warning);
         await ReloadCasesAsync();
     }
 
@@ -264,11 +605,11 @@ else
         }
 
         isBusy_ = true;
-        Guid? jobId = await Api.ProcessCaseAsync(currentCase_.ID);
+        Guid? jobId = await Api.ProcessCaseAsync(currentCase_.Id);
         isBusy_ = false;
         Snackbar.Add(jobId.HasValue ? "Calibration processing queued." : "Could not queue calibration processing.", jobId.HasValue ? Severity.Success : Severity.Error);
         await ReloadCasesAsync();
-        selectedCaseLight_ = cases_?.FirstOrDefault(item => item.ID == currentCase_.ID) ?? selectedCaseLight_;
+        selectedCaseLight_ = cases_?.FirstOrDefault(item => item.Id == currentCase_.Id) ?? selectedCaseLight_;
     }
 
     private async Task CloseEditorAsync()
@@ -280,9 +621,535 @@ else
         await ReloadCasesAsync();
     }
 
+    private void OnFieldChanged(Guid? fieldId)
+    {
+        if (currentCase_ is null)
+        {
+            return;
+        }
+
+        currentCase_.FieldID = fieldId ?? Guid.Empty;
+        currentCase_.ClusterID = Guid.Empty;
+        currentCase_.WellID = Guid.Empty;
+        currentCase_.WellBoreID = Guid.Empty;
+        currentCase_.WellBoreArchitectureID = Guid.Empty;
+        currentCase_.DrillStringID = Guid.Empty;
+        UpdateDerivedContextFields();
+    }
+
+    private void OnClusterChanged(Guid? clusterId)
+    {
+        if (currentCase_ is null)
+        {
+            return;
+        }
+
+        currentCase_.ClusterID = clusterId ?? Guid.Empty;
+        if (clusterId is Guid selectedClusterId)
+        {
+            ClusterLight? cluster = clusterList_.FirstOrDefault(item => item.MetaInfo?.ID == selectedClusterId);
+            currentCase_.FieldID = cluster?.FieldID ?? currentCase_.FieldID;
+        }
+
+        currentCase_.WellID = Guid.Empty;
+        currentCase_.WellBoreID = Guid.Empty;
+        currentCase_.WellBoreArchitectureID = Guid.Empty;
+        currentCase_.DrillStringID = Guid.Empty;
+        UpdateDerivedContextFields();
+    }
+
+    private void OnWellChanged(Guid? wellId)
+    {
+        if (currentCase_ is null)
+        {
+            return;
+        }
+
+        currentCase_.WellID = wellId ?? Guid.Empty;
+        if (wellId is Guid selectedWellId)
+        {
+            Well? well = wellList_.FirstOrDefault(item => item.MetaInfo?.ID == selectedWellId);
+            currentCase_.ClusterID = well?.ClusterID ?? currentCase_.ClusterID;
+            if (currentCase_.ClusterID != Guid.Empty)
+            {
+                ClusterLight? cluster = clusterList_.FirstOrDefault(item => item.MetaInfo?.ID == currentCase_.ClusterID);
+                currentCase_.FieldID = cluster?.FieldID ?? currentCase_.FieldID;
+            }
+        }
+
+        currentCase_.WellBoreID = Guid.Empty;
+        currentCase_.WellBoreArchitectureID = Guid.Empty;
+        currentCase_.DrillStringID = Guid.Empty;
+        UpdateDerivedContextFields();
+    }
+
+    private void OnWellBoreChanged(Guid? wellBoreId)
+    {
+        if (currentCase_ is null)
+        {
+            return;
+        }
+
+        ApplyWellBoreContext(wellBoreId);
+        currentCase_.WellBoreArchitectureID = Guid.Empty;
+        currentCase_.DrillStringID = Guid.Empty;
+        UpdateDerivedContextFields();
+    }
+
+    private void OnWellBoreArchitectureChanged(Guid? architectureId)
+    {
+        if (currentCase_ is null)
+        {
+            return;
+        }
+
+        currentCase_.WellBoreArchitectureID = architectureId ?? Guid.Empty;
+        if (architectureId is Guid selectedArchitectureId)
+        {
+            WellBoreArchitecture? architecture = wellBoreArchitectureList_.FirstOrDefault(item => item.MetaInfo?.ID == selectedArchitectureId);
+            if (architecture?.WellBoreID is Guid architectureWellBoreId && architectureWellBoreId != Guid.Empty)
+            {
+                if (currentCase_.WellBoreID != Guid.Empty && currentCase_.WellBoreID != architectureWellBoreId)
+                {
+                    currentCase_.DrillStringID = Guid.Empty;
+                }
+
+                ApplyWellBoreContext(architectureWellBoreId);
+            }
+        }
+
+        UpdateDerivedContextFields();
+    }
+
+    private void OnDrillStringChanged(Guid? drillStringId)
+    {
+        if (currentCase_ is null)
+        {
+            return;
+        }
+
+        currentCase_.DrillStringID = drillStringId ?? Guid.Empty;
+        if (drillStringId is Guid selectedDrillStringId)
+        {
+            DrillStringLight? drillString = drillStringList_.FirstOrDefault(item => item.MetaInfo?.ID == selectedDrillStringId);
+            if (drillString?.WellBoreID is Guid drillStringWellBoreId && drillStringWellBoreId != Guid.Empty)
+            {
+                if (currentCase_.WellBoreID != Guid.Empty && currentCase_.WellBoreID != drillStringWellBoreId)
+                {
+                    currentCase_.WellBoreArchitectureID = Guid.Empty;
+                }
+
+                ApplyWellBoreContext(drillStringWellBoreId);
+            }
+        }
+
+        UpdateDerivedContextFields();
+    }
+
     private static string FormatDate(DateTimeOffset value) => value.ToString("u");
 
-    private static string FormatGuid(Guid value) => value == Guid.Empty ? string.Empty : value.ToString();
+    private static Guid? ToNullableGuid(Guid? value) => value is Guid id && id != Guid.Empty ? id : null;
+
+    private DelimitedImportDefinition EnsureRealtimeImportDefinition()
+    {
+        if (currentCase_ is null)
+        {
+            return CreateDefaultImportDefinition();
+        }
+
+        currentCase_.RealtimeImportDefinition ??= CreateDefaultImportDefinition();
+        currentCase_.RealtimeImportDefinition.Columns ??= new List<DelimitedColumnMapping>();
+        foreach (DelimitedColumnMapping mapping in currentCase_.RealtimeImportDefinition.Columns)
+        {
+            ApplySignalDefaults(mapping, overwriteUnit: string.IsNullOrWhiteSpace(mapping.Unit));
+        }
+
+        return currentCase_.RealtimeImportDefinition;
+    }
+
+    private static DelimitedImportDefinition CreateDefaultImportDefinition()
+    {
+        return new DelimitedImportDefinition
+        {
+            FileFormat = ActiveVolumeImportFileFormat.DelimitedText,
+            Separator = DelimitedFileSeparator.Comma,
+            CustomSeparator = ",",
+            HasHeader = true,
+            TimestampFormat = "O",
+            TimestampStorageKind = TimestampStorageKind.Utc,
+            LocalTimeZoneId = TimeZoneInfo.Local.Id,
+            Columns = CreateDefaultImportMappings()
+        };
+    }
+
+    private static List<DelimitedColumnMapping> CreateDefaultImportMappings()
+    {
+        ActiveVolumeSignalKind[] defaultSignals =
+        {
+            ActiveVolumeSignalKind.Timestamp,
+            ActiveVolumeSignalKind.ActiveVolume,
+            ActiveVolumeSignalKind.FlowrateIn,
+            ActiveVolumeSignalKind.FlowPaddlePosition,
+            ActiveVolumeSignalKind.CoriolisVolumetricFlowrate,
+            ActiveVolumeSignalKind.CoriolisMassFlowrate,
+            ActiveVolumeSignalKind.ReturnMudDensity,
+            ActiveVolumeSignalKind.CuttingsRecoveryRate,
+            ActiveVolumeSignalKind.StandPipePressure,
+            ActiveVolumeSignalKind.BottomOfStringDepth,
+            ActiveVolumeSignalKind.BottomHoleDepth
+        };
+
+        return defaultSignals
+            .Select((signal, index) =>
+            {
+                DelimitedColumnMapping mapping = new()
+                {
+                    ColumnIndex = index,
+                    FieldName = signal.ToString()
+                };
+                OnImportSignalKindChanged(mapping, signal);
+                return mapping;
+            })
+            .ToList();
+    }
+
+    private void OnImportFileFormatChanged(ActiveVolumeImportFileFormat fileFormat)
+    {
+        RealtimeImportDefinition.FileFormat = fileFormat;
+        if (fileFormat == ActiveVolumeImportFileFormat.FixedWidthText)
+        {
+            RealtimeImportDefinition.Separator = DelimitedFileSeparator.FixedWidth;
+        }
+        else if (RealtimeImportDefinition.Separator == DelimitedFileSeparator.FixedWidth)
+        {
+            RealtimeImportDefinition.Separator = DelimitedFileSeparator.Comma;
+        }
+    }
+
+    private void AddImportColumnMapping()
+    {
+        DelimitedImportDefinition definition = RealtimeImportDefinition;
+        definition.Columns ??= new List<DelimitedColumnMapping>();
+        DelimitedColumnMapping mapping = new()
+        {
+            ColumnIndex = definition.Columns.Count,
+            FieldName = "Signal"
+        };
+        OnImportSignalKindChanged(mapping, ActiveVolumeSignalKind.Ignore);
+        definition.Columns.Add(mapping);
+    }
+
+    private void RemoveImportColumnMapping(DelimitedColumnMapping mapping)
+    {
+        RealtimeImportDefinition.Columns?.Remove(mapping);
+    }
+
+    private static void OnImportSignalKindChanged(DelimitedColumnMapping mapping, ActiveVolumeSignalKind signalKind)
+    {
+        mapping.SignalKind = signalKind;
+        ApplySignalDefaults(mapping, overwriteUnit: true);
+    }
+
+    private static void ApplySignalDefaults(DelimitedColumnMapping mapping, bool overwriteUnit)
+    {
+        mapping.PhysicalQuantity = GetPhysicalQuantity(mapping.SignalKind);
+        mapping.ReferenceSystem = SignalUsesDepthReference(mapping.SignalKind) ? "WGS84" : string.Empty;
+        if (SignalUsesDepthReference(mapping.SignalKind) && string.IsNullOrWhiteSpace(mapping.DepthReferenceName))
+        {
+            mapping.DepthReferenceName = "WGS84";
+        }
+        else if (!SignalUsesDepthReference(mapping.SignalKind))
+        {
+            mapping.DepthReferenceName = string.Empty;
+        }
+
+        if (overwriteUnit)
+        {
+            mapping.Unit = GetDefaultUnit(mapping.SignalKind);
+        }
+    }
+
+    private static bool SignalUsesDepthReference(ActiveVolumeSignalKind signalKind) =>
+        signalKind is ActiveVolumeSignalKind.BottomOfStringDepth or ActiveVolumeSignalKind.BottomHoleDepth;
+
+    private static bool SignalHasUnit(ActiveVolumeSignalKind signalKind) =>
+        signalKind is not ActiveVolumeSignalKind.Ignore and not ActiveVolumeSignalKind.Timestamp;
+
+    private static string GetPhysicalQuantity(ActiveVolumeSignalKind signalKind) => signalKind switch
+    {
+        ActiveVolumeSignalKind.RelativeSeconds => "TimeStandard",
+        ActiveVolumeSignalKind.ActiveVolume => "VolumeDrilling",
+        ActiveVolumeSignalKind.FlowrateIn => "VolumetricFlowrateDrilling",
+        ActiveVolumeSignalKind.FlowPaddlePosition => "ProportionStandard",
+        ActiveVolumeSignalKind.CoriolisVolumetricFlowrate => "VolumetricFlowrateDrilling",
+        ActiveVolumeSignalKind.CoriolisMassFlowrate => "MassRateDrilling",
+        ActiveVolumeSignalKind.ReturnMudDensity => "MassDensityDrilling",
+        ActiveVolumeSignalKind.CuttingsRecoveryRate => "VolumetricFlowrateDrilling",
+        ActiveVolumeSignalKind.CuttingsParticleSizeDistribution => "ProportionStandard",
+        ActiveVolumeSignalKind.StandPipePressure => "PressureDrilling",
+        ActiveVolumeSignalKind.InletMudTemperature => "TemperatureDrilling",
+        ActiveVolumeSignalKind.OutletMudTemperature => "TemperatureDrilling",
+        ActiveVolumeSignalKind.BottomOfStringDepth => "DepthDrilling",
+        ActiveVolumeSignalKind.BottomHoleDepth => "DepthDrilling",
+        ActiveVolumeSignalKind.AxialPipeVelocity => "AxialVelocityDrilling",
+        ActiveVolumeSignalKind.ShakerLoadEstimate => "DimensionLessStandard",
+        _ => string.Empty
+    };
+
+    private static string GetDefaultUnit(ActiveVolumeSignalKind signalKind) => signalKind switch
+    {
+        ActiveVolumeSignalKind.RelativeSeconds => "s",
+        ActiveVolumeSignalKind.ActiveVolume => "m3",
+        ActiveVolumeSignalKind.FlowrateIn => "m3/s",
+        ActiveVolumeSignalKind.CoriolisVolumetricFlowrate => "m3/s",
+        ActiveVolumeSignalKind.CoriolisMassFlowrate => "kg/s",
+        ActiveVolumeSignalKind.ReturnMudDensity => "kg/m3",
+        ActiveVolumeSignalKind.CuttingsRecoveryRate => "m3/s",
+        ActiveVolumeSignalKind.StandPipePressure => "Pa",
+        ActiveVolumeSignalKind.InletMudTemperature => "degC",
+        ActiveVolumeSignalKind.OutletMudTemperature => "degC",
+        ActiveVolumeSignalKind.BottomOfStringDepth => "m",
+        ActiveVolumeSignalKind.BottomHoleDepth => "m",
+        ActiveVolumeSignalKind.AxialPipeVelocity => "m/s",
+        ActiveVolumeSignalKind.FlowPaddlePosition => "%",
+        ActiveVolumeSignalKind.CuttingsParticleSizeDistribution => "%",
+        ActiveVolumeSignalKind.ShakerLoadEstimate => "1",
+        _ => string.Empty
+    };
+
+    private static IReadOnlyList<string> GetUnitChoices(ActiveVolumeSignalKind signalKind) => GetPhysicalQuantity(signalKind) switch
+    {
+        "TimeStandard" => new[] { "s", "min", "h" },
+        "VolumeDrilling" => new[] { "m3", "L", "bbl" },
+        "VolumetricFlowrateDrilling" => new[] { "m3/s", "L/min", "m3/min", "gpm", "bbl/min" },
+        "ProportionStandard" => new[] { "1", "%", "ppm" },
+        "MassRateDrilling" => new[] { "kg/s", "kg/min", "lb/min" },
+        "MassDensityDrilling" => new[] { "kg/m3", "sg", "g/cm3", "ppg" },
+        "PressureDrilling" => new[] { "Pa", "bar", "psi", "MPa" },
+        "TemperatureDrilling" => new[] { "degC", "degF", "K" },
+        "DepthDrilling" => new[] { "m", "ft" },
+        "AxialVelocityDrilling" => new[] { "m/s", "ft/s", "m/min", "ft/min" },
+        "DimensionLessStandard" => new[] { "1" },
+        _ => new[] { string.Empty }
+    };
+
+    private static string FormatImportFileFormat(ActiveVolumeImportFileFormat fileFormat) => fileFormat switch
+    {
+        ActiveVolumeImportFileFormat.DelimitedText => "ASCII delimited",
+        ActiveVolumeImportFileFormat.FixedWidthText => "ASCII fixed width",
+        ActiveVolumeImportFileFormat.Parquet => "Parquet",
+        _ => fileFormat.ToString()
+    };
+
+    private static string FormatSeparator(DelimitedFileSeparator separator) => separator switch
+    {
+        DelimitedFileSeparator.Comma => "Comma",
+        DelimitedFileSeparator.Semicolon => "Semicolon",
+        DelimitedFileSeparator.Tab => "Tab",
+        DelimitedFileSeparator.Whitespace => "Whitespace",
+        DelimitedFileSeparator.Custom => "Custom",
+        _ => separator.ToString()
+    };
+
+    private static string FormatTimestampKind(TimestampStorageKind timestampStorageKind) => timestampStorageKind switch
+    {
+        TimestampStorageKind.Utc => "UTC",
+        TimestampStorageKind.LocalTime => "Local time",
+        _ => timestampStorageKind.ToString()
+    };
+
+    private static string FormatSignalKind(ActiveVolumeSignalKind signalKind) => signalKind switch
+    {
+        ActiveVolumeSignalKind.FlowrateIn => "Flowrate In",
+        ActiveVolumeSignalKind.FlowPaddlePosition => "Flow Paddle Position",
+        ActiveVolumeSignalKind.CoriolisVolumetricFlowrate => "Coriolis Volumetric Flowrate",
+        ActiveVolumeSignalKind.CoriolisMassFlowrate => "Coriolis Mass Flowrate",
+        ActiveVolumeSignalKind.ReturnMudDensity => "Return Mud Density",
+        ActiveVolumeSignalKind.CuttingsRecoveryRate => "Cuttings Recovery Rate",
+        ActiveVolumeSignalKind.CuttingsParticleSizeDistribution => "Cuttings Particle Size Distribution",
+        ActiveVolumeSignalKind.StandPipePressure => "Stand Pipe Pressure",
+        ActiveVolumeSignalKind.InletMudTemperature => "Inlet Mud Temperature",
+        ActiveVolumeSignalKind.OutletMudTemperature => "Outlet Mud Temperature",
+        ActiveVolumeSignalKind.BottomOfStringDepth => "Bottom Of String Depth",
+        ActiveVolumeSignalKind.BottomHoleDepth => "Bottom Hole Depth",
+        ActiveVolumeSignalKind.AxialPipeVelocity => "Axial Pipe Velocity",
+        ActiveVolumeSignalKind.ShakerLoadEstimate => "Shaker Load Estimate",
+        _ => signalKind.ToString()
+    };
+
+    private void ApplyWellBoreContext(Guid? wellBoreId)
+    {
+        if (currentCase_ is null)
+        {
+            return;
+        }
+
+        currentCase_.WellBoreID = wellBoreId ?? Guid.Empty;
+        if (wellBoreId is not Guid selectedWellBoreId || selectedWellBoreId == Guid.Empty)
+        {
+            return;
+        }
+
+        WellBore? wellBore = wellBoreList_.FirstOrDefault(item => item.MetaInfo?.ID == selectedWellBoreId);
+        currentCase_.WellID = wellBore?.WellID ?? currentCase_.WellID;
+        if (currentCase_.WellID == Guid.Empty)
+        {
+            return;
+        }
+
+        Well? well = wellList_.FirstOrDefault(item => item.MetaInfo?.ID == currentCase_.WellID);
+        currentCase_.ClusterID = well?.ClusterID ?? currentCase_.ClusterID;
+        if (currentCase_.ClusterID == Guid.Empty)
+        {
+            return;
+        }
+
+        ClusterLight? cluster = clusterList_.FirstOrDefault(item => item.MetaInfo?.ID == currentCase_.ClusterID);
+        currentCase_.FieldID = cluster?.FieldID ?? currentCase_.FieldID;
+    }
+
+    private void UpdateDerivedContextFields()
+    {
+        if (currentCase_ is null)
+        {
+            return;
+        }
+
+        currentCase_.RigName = DerivedRigName;
+        currentCase_.MudSystem = DerivedMudSystem;
+        currentCase_.HoleSection = DerivedHoleSection;
+    }
+
+    private string GetDerivedRigName()
+    {
+        Rig? rig = GetSelectedRig();
+        if (rig is null)
+        {
+            return string.Empty;
+        }
+
+        Guid? rigId = rig.MetaInfo?.ID;
+        return !string.IsNullOrWhiteSpace(rig.Name) ? rig.Name : rigId?.ToString() ?? string.Empty;
+    }
+
+    private string GetDerivedMudSystem()
+    {
+        Rig? rig = GetSelectedRig();
+        DrillingFluidTypeDescriptor? fluidType = rig?.DrillingFluidType;
+        if (fluidType is null)
+        {
+            return string.Empty;
+        }
+
+        if (!string.IsNullOrWhiteSpace(fluidType.Name))
+        {
+            return fluidType.Name;
+        }
+
+        return $"{fluidType.DrillingFluidClass} / {fluidType.DrillingFluidType}";
+    }
+
+    private string GetDerivedHoleSection()
+    {
+        WellBoreArchitecture? architecture = GetSelectedWellBoreArchitecture();
+        CasingSection? casingSection = architecture?.CasingSections?
+            .Where(section => section?.OpenHoleSection is not null)
+            .LastOrDefault();
+        if (casingSection?.OpenHoleSection is null)
+        {
+            return string.Empty;
+        }
+
+        List<string> openHoleSegments = casingSection.OpenHoleSection.HoleSizes?
+            .Select(FormatOpenHoleSegment)
+            .Where(item => !string.IsNullOrWhiteSpace(item))
+            .ToList() ?? new List<string>();
+
+        return openHoleSegments.Count > 0 ? string.Join("; ", openHoleSegments) : "Open hole";
+    }
+
+    private WellBore? GetSelectedWellBore()
+    {
+        return SelectedWellBoreId is Guid wellBoreId
+            ? wellBoreList_.FirstOrDefault(item => item.MetaInfo?.ID == wellBoreId)
+            : null;
+    }
+
+    private Rig? GetSelectedRig()
+    {
+        Guid? rigId = GetSelectedRigId();
+        return rigId is Guid id
+            ? rigList_.FirstOrDefault(item => item.MetaInfo?.ID == id)
+            : null;
+    }
+
+    private Guid? GetSelectedRigId()
+    {
+        WellBore? wellBore = GetSelectedWellBore();
+        if (wellBore?.RigID is Guid wellBoreRigId && wellBoreRigId != Guid.Empty)
+        {
+            return wellBoreRigId;
+        }
+
+        Well? well = wellBore?.WellID is Guid wellId && wellId != Guid.Empty
+            ? wellList_.FirstOrDefault(item => item.MetaInfo?.ID == wellId)
+            : SelectedWellId is Guid selectedWellId
+                ? wellList_.FirstOrDefault(item => item.MetaInfo?.ID == selectedWellId)
+                : null;
+
+        ClusterLight? cluster = well?.ClusterID is Guid clusterId && clusterId != Guid.Empty
+            ? clusterList_.FirstOrDefault(item => item.MetaInfo?.ID == clusterId)
+            : SelectedClusterId is Guid selectedClusterId
+                ? clusterList_.FirstOrDefault(item => item.MetaInfo?.ID == selectedClusterId)
+                : null;
+
+        return cluster is { IsFixedPlatform: true, RigID: Guid clusterRigId } && clusterRigId != Guid.Empty
+            ? clusterRigId
+            : null;
+    }
+
+    private WellBoreArchitecture? GetSelectedWellBoreArchitecture()
+    {
+        return SelectedWellBoreArchitectureId is Guid architectureId
+            ? wellBoreArchitectureList_.FirstOrDefault(item => item.MetaInfo?.ID == architectureId)
+            : null;
+    }
+
+    private static string FormatGaussianValue(GaussianDrillingProperty? property)
+    {
+        double? value = property?.GaussianValue?.Mean;
+        return value?.ToString("G4") ?? string.Empty;
+    }
+
+    private string FormatOpenHoleSegment(BoreHoleSize? holeSize)
+    {
+        string diameter = FormatQuantityValue(holeSize?.HoleSize, "DiameterPipeDrilling");
+        string length = FormatQuantityValue(holeSize?.Length, "DepthDrilling");
+        if (!string.IsNullOrWhiteSpace(diameter) && !string.IsNullOrWhiteSpace(length))
+        {
+            return $"{diameter} x {length}";
+        }
+
+        if (!string.IsNullOrWhiteSpace(diameter))
+        {
+            return diameter;
+        }
+
+        return !string.IsNullOrWhiteSpace(length) ? length : string.Empty;
+    }
+
+    private string FormatQuantityValue(GaussianDrillingProperty? property, string quantityName)
+    {
+        double? siValue = property?.GaussianValue?.Mean;
+        if (!siValue.HasValue)
+        {
+            return string.Empty;
+        }
+
+        double? converted = unitReferenceTag_?.FromSI(siValue, quantityName);
+        string unitLabel = unitReferenceTag_?.GetUnitLabel(quantityName) ?? "m";
+        return $"{(converted ?? siValue.Value):G4} {unitLabel}";
+    }
 
     private static double ToPercent(double progress) => Math.Clamp(progress, 0.0, 1.0) * 100.0;
 
@@ -296,6 +1163,34 @@ else
         }
 
         return item.CalibrationQuality is double quality ? $"{quality:F3}" : "Available";
+    }
+
+    private static ActiveVolumeCaseLight ToLight(ActiveVolumeCase activeCase)
+    {
+        return new ActiveVolumeCaseLight
+        {
+            Id = activeCase.Id,
+            Name = activeCase.Name,
+            FieldID = activeCase.FieldID,
+            ClusterID = activeCase.ClusterID,
+            WellID = activeCase.WellID,
+            WellBoreID = activeCase.WellBoreID,
+            WellBoreArchitectureID = activeCase.WellBoreArchitectureID,
+            DrillStringID = activeCase.DrillStringID,
+            ReturnFlowMeasurementMode = activeCase.ReturnFlowMeasurementMode,
+            ProcessingState = activeCase.ProcessingState,
+            ProcessingProgress = activeCase.ProcessingProgress,
+            ProcessingMessage = activeCase.ProcessingMessage,
+            LastProcessedChunkIndex = activeCase.LastProcessedChunkIndex,
+            ChunkCount = activeCase.ChunkCount,
+            SampleCount = activeCase.SampleCount,
+            ActiveJobID = activeCase.ActiveJobID,
+            BestCalibrationID = activeCase.BestCalibrationID,
+            CalibrationQuality = activeCase.CalibrationQuality,
+            LastCalibrationDate = activeCase.LastCalibrationDate,
+            CreationDate = activeCase.CreationDate,
+            LastModificationDate = activeCase.LastModificationDate
+        };
     }
 
     private static Color GetProcessingColor(ActiveVolumeCaseProcessingState state) => state switch

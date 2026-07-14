@@ -6,7 +6,9 @@
 {
     <MudStack Spacing="3">
         <MudStack Row AlignItems="AlignItems.Center">
-            <MudText Typo="Typo.h5">Batch Imports</MudText>
+            <MudText Typo="Typo.h6">Batch Imports</MudText>
+            <MudButton OnClick="CreateBatchImportAsync" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
+            <MudButton OnClick="DeleteSelectedBatchImportsAsync" Color="@Color.Error" Class="add-item-btn" Disabled="@(!selectedBatchImports_.Any() || isBusy_)">Delete</MudButton>
             <MudSpacer />
             <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ReloadBatchImportsAsync">Refresh</MudButton>
         </MudStack>
@@ -17,7 +19,7 @@
         }
         else
         {
-            <MudTable Items="@batchImports_" T="ActiveVolumeCaseBatchImportLight" Hover="true" Dense="true" Bordered="true" OnRowClick="OnBatchImportRowClicked">
+            <MudTable Items="@batchImports_" T="ActiveVolumeCaseBatchImportLight" MultiSelection="true" @bind-SelectedItems="selectedBatchImports_" Hover="true" Dense="true" Bordered="true" OnRowClick="OnBatchImportRowClicked">
                 <HeaderContent>
                     <MudTh>Name</MudTh>
                     <MudTh>Status</MudTh>
@@ -25,6 +27,7 @@
                     <MudTh>Items</MudTh>
                     <MudTh>Created Cases</MudTh>
                     <MudTh>Created</MudTh>
+                    <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Name">@context.Name</MudTd>
@@ -42,6 +45,11 @@
                     <MudTd DataLabel="Items">@context.ItemCount</MudTd>
                     <MudTd DataLabel="Created Cases">@context.CreatedCaseCount</MudTd>
                     <MudTd DataLabel="Created">@FormatDate(context.CreationDate)</MudTd>
+                    <MudTd>
+                        <span @onclick:stopPropagation="true">
+                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="(() => DeleteBatchImportAsync(context))" />
+                        </span>
+                    </MudTd>
                 </RowTemplate>
                 <NoRecordsContent>
                     <MudText>No batch imports have been created yet.</MudText>
@@ -56,8 +64,10 @@ else
         <MudStack Row AlignItems="AlignItems.Center">
             <MudText Typo="Typo.h5">Edit Batch Import</MudText>
             <MudSpacer />
-            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="SaveBatchImportAsync" Disabled="@(currentBatchImport_ is null || isBusy_)">Save</MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditorAsync">Close</MudButton>
+            <MudContainer Class="d-flex flex-row justify-end pa-0">
+                <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveBatchImportAsync" Disabled="@(currentBatchImport_ is null || isBusy_)">Save</MudButton>
+                <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditorAsync">Close</MudButton>
+            </MudContainer>
         </MudStack>
 
         @if (selectedBatchImportLight_ is not null)
@@ -143,6 +153,7 @@ else
 
 @code {
     private List<ActiveVolumeCaseBatchImportLight>? batchImports_;
+    private HashSet<ActiveVolumeCaseBatchImportLight> selectedBatchImports_ = new();
     private ActiveVolumeCaseBatchImportLight? selectedBatchImportLight_;
     private ActiveVolumeCaseBatchImport? currentBatchImport_;
     private bool isEditing_;
@@ -157,6 +168,24 @@ else
     private async Task ReloadBatchImportsAsync()
     {
         batchImports_ = await Api.GetBatchImportsAsync();
+        selectedBatchImports_.Clear();
+    }
+
+    private Task CreateBatchImportAsync()
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        currentBatchImport_ = new ActiveVolumeCaseBatchImport
+        {
+            Id = Guid.Empty,
+            Name = "New batch import",
+            CreationDate = now,
+            ProcessingState = ActiveVolumeCaseProcessingState.Created,
+            Items = new List<ActiveVolumeCaseBatchImportItem>()
+        };
+        selectedBatchImportLight_ = ToLight(currentBatchImport_);
+        isEditing_ = true;
+        isLoadingBatchImport_ = false;
+        return Task.CompletedTask;
     }
 
     private async Task OnBatchImportRowClicked(TableRowClickEventArgs<ActiveVolumeCaseBatchImportLight> args)
@@ -170,7 +199,7 @@ else
         selectedBatchImportLight_ = selectedBatchImport;
         isEditing_ = true;
         isLoadingBatchImport_ = true;
-        currentBatchImport_ = await Api.GetBatchImportAsync(selectedBatchImport.ID);
+        currentBatchImport_ = await Api.GetBatchImportAsync(selectedBatchImport.Id);
         isLoadingBatchImport_ = false;
     }
 
@@ -185,6 +214,45 @@ else
         bool saved = await Api.SaveBatchImportAsync(currentBatchImport_);
         isBusy_ = false;
         Snackbar.Add(saved ? "Batch import saved." : "Could not save batch import.", saved ? Severity.Success : Severity.Error);
+        await ReloadBatchImportsAsync();
+    }
+
+    private async Task DeleteBatchImportAsync(ActiveVolumeCaseBatchImportLight batchImport)
+    {
+        isBusy_ = true;
+        bool deleted = await Api.DeleteBatchImportAsync(batchImport.Id);
+        isBusy_ = false;
+        Snackbar.Add(deleted ? "Batch import deleted." : "Could not delete batch import.", deleted ? Severity.Success : Severity.Error);
+        if (currentBatchImport_?.Id == batchImport.Id)
+        {
+            currentBatchImport_ = null;
+            selectedBatchImportLight_ = null;
+            isEditing_ = false;
+        }
+
+        await ReloadBatchImportsAsync();
+    }
+
+    private async Task DeleteSelectedBatchImportsAsync()
+    {
+        List<ActiveVolumeCaseBatchImportLight> batchImportsToDelete = selectedBatchImports_.ToList();
+        if (batchImportsToDelete.Count == 0)
+        {
+            return;
+        }
+
+        isBusy_ = true;
+        int deletedCount = 0;
+        foreach (ActiveVolumeCaseBatchImportLight batchImport in batchImportsToDelete)
+        {
+            if (await Api.DeleteBatchImportAsync(batchImport.Id))
+            {
+                deletedCount++;
+            }
+        }
+
+        isBusy_ = false;
+        Snackbar.Add($"Deleted {deletedCount} of {batchImportsToDelete.Count} selected batch imports.", deletedCount == batchImportsToDelete.Count ? Severity.Success : Severity.Warning);
         await ReloadBatchImportsAsync();
     }
 
@@ -203,6 +271,22 @@ else
     private static double ToPercent(double progress) => Math.Clamp(progress, 0.0, 1.0) * 100.0;
 
     private static string FormatPercent(double progress) => $"{ToPercent(progress):F0}%";
+
+    private static ActiveVolumeCaseBatchImportLight ToLight(ActiveVolumeCaseBatchImport batchImport)
+    {
+        ICollection<ActiveVolumeCaseBatchImportItem> items = batchImport.Items ?? Array.Empty<ActiveVolumeCaseBatchImportItem>();
+        return new ActiveVolumeCaseBatchImportLight
+        {
+            Id = batchImport.Id,
+            Name = batchImport.Name,
+            CreationDate = batchImport.CreationDate,
+            ProcessingState = batchImport.ProcessingState,
+            ProcessingProgress = batchImport.ProcessingProgress,
+            ProcessingMessage = batchImport.ProcessingMessage,
+            ItemCount = items.Count,
+            CreatedCaseCount = items.Count(item => item.CreatedCaseID.HasValue)
+        };
+    }
 
     private static Color GetProcessingColor(ActiveVolumeCaseProcessingState state) => state switch
     {

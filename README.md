@@ -6,7 +6,7 @@ The solution is organized around three runtime surfaces:
 
 - a realtime worker that reads drilling signals from the blackboard, runs the shared active-volume model, publishes fused values, and spools live data durably;
 - a calibration REST API that stores historical and online cases in SQLite, processes calibration jobs, and serves best-match calibration records;
-- a Blazor web app, backed by reusable web pages, for importing historical cases and inspecting cases, jobs, and calibrations.
+- a Blazor web app, backed by reusable web pages, for importing historical cases and inspecting cases, processing state, and calibration results.
 
 All internal engineering values are represented in SI units. Imported spatial/contextual data is expected to be normalized to WGS84 at the import boundary.
 
@@ -17,10 +17,10 @@ All internal engineering values are represented in SI units. Imported spatial/co
 | `DWIS.Service.ActiveVolume.Model` | Shared domain model, DTOs, calibration records, import definitions, online fusion engine, and geometry calculators. |
 | `DWIS.Service.ActiveVolume.Server` | Realtime online worker connected to the DWIS blackboard and the CalibrationService. |
 | `DWIS.Service.ActiveVolume.CalibrationService` | ASP.NET Core REST API backed by SQLite for cases, chunks, batch imports, jobs, and calibration records. |
-| `DWIS.Service.ActiveVolume.CalibrationWebPages` | Reusable Razor class library with ActiveVolume pages and API helpers; packaged as a NuGet. |
+| `DWIS.Service.ActiveVolume.CalibrationWebPages` | Reusable Razor class library with ActiveVolume pages and generated ModelSharedOut API client wrapper; packaged as a NuGet. |
 | `DWIS.Service.ActiveVolume.CalibrationWebApp` | Thin Blazor Server host for the reusable CalibrationWebPages library. |
 | `DWIS.Service.ActiveVolume.ModelSharedIn` | Generated merged OpenAPI client/DTO project for upstream context services used by the online server. |
-| `DWIS.Service.ActiveVolume.ModelSharedOut` | Generated merged OpenAPI client/DTO project for client applications. |
+| `DWIS.Service.ActiveVolume.ModelSharedOut` | Generated merged OpenAPI client/DTO project for client applications; includes CalibrationService and context-service schemas. |
 | `DWIS.Service.ActiveVolume.DataSource` | Development worker that publishes synthetic ActiveVolume inputs to the blackboard. |
 | `DWIS.Service.ActiveVolume.DataSink` | Development worker that reads and logs fused ActiveVolume outputs from the blackboard. |
 
@@ -55,6 +55,12 @@ Historical cases use chunked time-series storage so large imported datasets can 
 
 ```bash
 dotnet build DWIS.Service.ActiveVolume.sln
+```
+
+The CalibrationService Debug build exports its Swagger contract to `DWIS.Service.ActiveVolume.ModelSharedOut/json-schemas/ActiveVolumeCalibrationFullName.json`. After CalibrationService API changes, regenerate the client model with:
+
+```bash
+dotnet run --project DWIS.Service.ActiveVolume.ModelSharedOut/DWIS.Service.ActiveVolume.ModelSharedOut.csproj
 ```
 
 ## Run Locally

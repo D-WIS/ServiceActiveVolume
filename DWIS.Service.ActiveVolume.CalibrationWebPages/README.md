@@ -9,7 +9,7 @@ It is intentionally separated from the host CalibrationWebApp so the pages can b
 - `Pages/ActiveVolumeCalibrationCases.razor`: lists light case records from the CalibrationService and loads the heavy case only when a row is selected.
 - `Pages/ActiveVolumeCalibrationBatchImports.razor`: lists light batch import records and loads the heavy batch import only when a row is selected.
 - `ActiveVolumeCalibrationNavMenu.razor`: left-side navigation with ActiveVolume, context data, and calculator links.
-- `ActiveVolumeCalibrationAPIUtils.cs`: HTTP helper for CalibrationService API calls.
+- `ActiveVolumeCalibrationAPIUtils.cs`: thin wrapper around the generated ModelSharedOut client for CalibrationService API calls.
 - `ActiveVolumeCalibrationWebPagesConfiguration.cs`: endpoint configuration for the pages.
 - `wwwroot/activevolumecalibration.css`: styles for the reusable pages.
 
@@ -26,6 +26,7 @@ The configuration includes:
 - `WellBoreHostURL`
 - `WellBoreArchitectureHostURL`
 - `DrillStringHostURL`
+- `RigHostURL`
 - `UnitConversionHostURL`
 - `VerticalDatumHostURL`
 
@@ -40,7 +41,9 @@ The library currently contributes:
 - `/activevolumecalibration/cases`
 - `/activevolumecalibration/batch-imports`
 
-Case and batch import tables use light objects for listing and show processing progress directly in the table. Detail/edit mode downloads the heavy object from the CalibrationService. Calibration results are displayed from the selected case instead of through a separate calibration page.
+Case and batch import tables use light objects for listing and show processing progress directly in the table. They support creating new rows, selecting one or all rows, per-row deletion, and deletion of all selected rows. Detail/edit mode downloads the heavy object from the CalibrationService. Calibration results are displayed from the selected case instead of through a separate calibration page.
+
+The active volume case editor selects contextual data by name and stores the associated IDs. Rig, mud system, and hole section are read-only derived values: rig and mud system are resolved through the selected wellbore or fixed-platform cluster rig, while the hole section is resolved from the selected wellbore architecture. The editor is wrapped in the OSDC unit/reference component, and open-hole diameters and lengths are displayed in the selected unit system.
 
 The navigation menu also includes contextual data pages, unit conversion, and vertical datum/depth calculators supplied by the consuming web app through external web page packages.
 
@@ -64,4 +67,4 @@ The solution workflow `.github/workflows/publish-webpages-nuget.yml` publishes t
 
 ## Dependencies
 
-This project links selected DTO source files from `DWIS.Service.ActiveVolume.Model` so the NuGet package can be consumed without a local project reference.
+This project includes `DWIS.Service.ActiveVolume.ModelSharedOut/ActiveVolumeMergedModel.cs` as generated source so the NuGet package can be consumed without a local project reference. It also depends on `OSDC.UnitConversion.DrillingRazorMudComponents` for unit/reference selection and converted value display. Regenerate `ModelSharedOut` whenever the CalibrationService API changes before packing this project.

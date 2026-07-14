@@ -8,7 +8,21 @@ namespace DWIS.Service.ActiveVolume.Model.Import
         Semicolon = 1,
         Tab = 2,
         Whitespace = 3,
-        Custom = 4
+        Custom = 4,
+        FixedWidth = 5
+    }
+
+    public enum ActiveVolumeImportFileFormat
+    {
+        DelimitedText = 0,
+        FixedWidthText = 1,
+        Parquet = 2
+    }
+
+    public enum TimestampStorageKind
+    {
+        Utc = 0,
+        LocalTime = 1
     }
 
     public enum ActiveVolumeSignalKind
@@ -28,24 +42,34 @@ namespace DWIS.Service.ActiveVolume.Model.Import
         OutletMudTemperature = 12,
         BottomOfStringDepth = 13,
         BottomHoleDepth = 14,
-        AxialPipeVelocity = 15
+        AxialPipeVelocity = 15,
+        CuttingsParticleSizeDistribution = 16,
+        ShakerLoadEstimate = 17
     }
 
     public sealed class DelimitedColumnMapping
     {
         public int ColumnIndex { get; set; }
+        public string FieldName { get; set; } = string.Empty;
+        public int FixedWidthStartIndex { get; set; }
+        public int FixedWidthLength { get; set; }
         public ActiveVolumeSignalKind SignalKind { get; set; }
         public string Unit { get; set; } = "SI";
+        public string PhysicalQuantity { get; set; } = string.Empty;
+        public string DepthReferenceName { get; set; } = "WGS84";
         public string ReferenceSystem { get; set; } = "WGS84";
     }
 
     public sealed class DelimitedImportDefinition
     {
+        public ActiveVolumeImportFileFormat FileFormat { get; set; } = ActiveVolumeImportFileFormat.DelimitedText;
         public DelimitedFileSeparator Separator { get; set; } = DelimitedFileSeparator.Comma;
         public string CustomSeparator { get; set; } = ",";
         public bool HasHeader { get; set; } = true;
         public DateTimeOffset? RelativeTimeOriginUtc { get; set; }
         public string TimestampFormat { get; set; } = "O";
+        public TimestampStorageKind TimestampStorageKind { get; set; } = TimestampStorageKind.Utc;
+        public string LocalTimeZoneId { get; set; } = string.Empty;
         public List<DelimitedColumnMapping> Columns { get; set; } = new();
     }
 

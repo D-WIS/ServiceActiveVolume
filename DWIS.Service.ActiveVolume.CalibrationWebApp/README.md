@@ -59,7 +59,7 @@ UnitConversionHostURL=http://unit-conversion/
 VerticalDatumHostURL=http://vertical-datum/
 ```
 
-The context service URLs mirror the services represented in `DWIS.Service.ActiveVolume.ModelSharedOut` and the services required by the embedded contextual pages. As in Trajectory, host URL settings are service roots. The reusable page API helper appends `activevolumecalibration/api` for CalibrationService calls.
+The context service URLs mirror the services represented in `DWIS.Service.ActiveVolume.ModelSharedOut` and the services required by the embedded contextual pages. As in Trajectory, host URL settings are service roots. The reusable page API helper uses the generated ModelSharedOut client and appends `activevolumecalibration/api` for CalibrationService calls.
 
 ## Build and Run
 
@@ -94,6 +94,5 @@ Endpoint URLs are configured through chart values under `env`.
 ## Dependencies
 
 - `DWIS.Service.ActiveVolume.CalibrationWebPages`
-- `DWIS.Service.ActiveVolume.ModelSharedOut`
 - CalibrationService REST API
 - contextual data and calculator web page NuGet packages

@@ -38,7 +38,10 @@ app.MapGet("/ActiveVolumeCalibration", () => Results.Ok(new
     {
         "ActiveVolumeCase",
         "ActiveVolumeCase/LightData",
+        "ActiveVolumeCase/{id}",
         "ActiveVolumeCaseBatchImport",
+        "ActiveVolumeCaseBatchImport/LightData",
+        "ActiveVolumeCaseBatchImport/{id}",
         "Calibration",
         "Calibration/BestMatch",
         "CalibrationJob/{id}"

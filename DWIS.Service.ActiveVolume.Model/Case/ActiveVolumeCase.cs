@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using DWIS.Service.ActiveVolume.Model.Import;
 
 namespace DWIS.Service.ActiveVolume.Model.Case
 {
@@ -30,6 +31,7 @@ namespace DWIS.Service.ActiveVolume.Model.Case
         public double? CalibrationQuality { get; set; }
         public DateTimeOffset? LastCalibrationDate { get; set; }
         public Dictionary<string, string> Tags { get; set; } = new();
+        public DelimitedImportDefinition RealtimeImportDefinition { get; set; } = new();
         public List<ActiveVolumeCaseChunk> Chunks { get; set; } = new();
 
         [JsonIgnore]

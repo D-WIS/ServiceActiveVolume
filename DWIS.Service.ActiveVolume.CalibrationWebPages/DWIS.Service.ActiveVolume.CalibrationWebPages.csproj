@@ -28,6 +28,7 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="MudBlazor" Version="8.14.0" />
+    <PackageReference Include="OSDC.UnitConversion.DrillingRazorMudComponents" Version="3.3.51" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,9 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\DWIS.Service.ActiveVolume.Model\Case\*.cs" Link="Model\Case\%(Filename)%(Extension)" />
-    <Compile Include="..\DWIS.Service.ActiveVolume.Model\Calibration\*.cs" Link="Model\Calibration\%(Filename)%(Extension)" />
-    <Compile Include="..\DWIS.Service.ActiveVolume.Model\Import\*.cs" Link="Model\Import\%(Filename)%(Extension)" />
+    <Compile Include="..\DWIS.Service.ActiveVolume.ModelSharedOut\ActiveVolumeMergedModel.cs" Link="GeneratedDtos\%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>

@@ -92,6 +92,29 @@ namespace DWIS.Service.ActiveVolume.CalibrationService.Managers
             }
         }
 
+        public bool DeleteCase(Guid id)
+        {
+            lock (lock_)
+            {
+                using SqliteConnection connection = OpenConnection();
+                using SqliteTransaction transaction = connection.BeginTransaction();
+                try
+                {
+                    ExecuteNonQuery(connection, transaction, "DELETE FROM ActiveVolumeCaseChunkTable WHERE CaseID = $id", id);
+                    ExecuteNonQuery(connection, transaction, "DELETE FROM CalibrationJobTable WHERE CaseID = $id", id);
+                    int deletedCases = ExecuteNonQuery(connection, transaction, "DELETE FROM ActiveVolumeCaseTable WHERE ID = $id", id);
+                    transaction.Commit();
+                    return deletedCases > 0;
+                }
+                catch (SqliteException exception)
+                {
+                    transaction.Rollback();
+                    logger_.LogError(exception, "Could not delete active volume case {ActiveVolumeCaseId}", id);
+                    return false;
+                }
+            }
+        }
+
         public ChunkSaveResult SaveChunk(Guid caseId, ActiveVolumeCaseChunk chunk)
         {
             lock (lock_)
@@ -352,6 +375,18 @@ namespace DWIS.Service.ActiveVolume.CalibrationService.Managers
             }
         }
 
+        public bool DeleteBatchImport(Guid id)
+        {
+            lock (lock_)
+            {
+                using SqliteConnection connection = OpenConnection();
+                using SqliteCommand command = connection.CreateCommand();
+                command.CommandText = "DELETE FROM ActiveVolumeCaseBatchImportTable WHERE ID = $id";
+                command.Parameters.AddWithValue("$id", id.ToString());
+                return command.ExecuteNonQuery() > 0;
+            }
+        }
+
         public ActiveVolumeCaseBatchImport? GetBatchImport(Guid id)
         {
             lock (lock_)
@@ -475,6 +510,15 @@ namespace DWIS.Service.ActiveVolume.CalibrationService.Managers
             using SqliteCommand command = connection.CreateCommand();
             command.CommandText = sql;
             command.ExecuteNonQuery();
+        }
+
+        private static int ExecuteNonQuery(SqliteConnection connection, SqliteTransaction transaction, string sql, Guid id)
+        {
+            using SqliteCommand command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = sql;
+            command.Parameters.AddWithValue("$id", id.ToString());
+            return command.ExecuteNonQuery();
         }
 
         private ActiveVolumeCase? GetCase(SqliteConnection connection, Guid id)

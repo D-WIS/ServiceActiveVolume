@@ -46,5 +46,11 @@ namespace DWIS.Service.ActiveVolume.CalibrationService.Controllers
             store_.SaveBatchImport(data);
             return Ok();
         }
+
+        [HttpDelete("{id}", Name = "DeleteActiveVolumeCaseBatchImportById")]
+        public ActionResult DeleteActiveVolumeCaseBatchImportById(Guid id)
+        {
+            return store_.DeleteBatchImport(id) ? Ok() : NotFound();
+        }
     }
 }
