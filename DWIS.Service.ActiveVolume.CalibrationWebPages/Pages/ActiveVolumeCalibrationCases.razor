@@ -1,4 +1,5 @@
 @page "/activevolumecalibration/cases"
+@implements IUnitAwareComponent
 @inject IActiveVolumeCalibrationAPIUtils Api
 @inject ISnackbar Snackbar
 
@@ -65,9 +66,9 @@ else
                                   HttpBasePath="@Api.HostBasePathUnitConversion"
                                   HttpController="UnitSystem/"
                                   UnitSystemName="@ActiveVolumeCalibrationUnitAndReferenceDataUtils.UnitAndReferenceParameters.UnitSystemName"
-                                  UnitSystemNameChanged="@ActiveVolumeCalibrationUnitAndReferenceDataUtils.UpdateUnitSystemName"
+                                  UnitSystemNameChanged="@OnUnitSystemNameChanged"
                                   DepthReferenceName="@ActiveVolumeCalibrationUnitAndReferenceDataUtils.UnitAndReferenceParameters.DepthReferenceName"
-                                  DepthReferenceNameChanged="@ActiveVolumeCalibrationUnitAndReferenceDataUtils.UpdateDepthReferenceName"
+                                  DepthReferenceNameChanged="@OnDepthReferenceNameChanged"
                                   GroundMudLineDepthReferenceSource="@ActiveVolumeCalibrationUnitAndReferenceDataUtils.GroundMudLineDepthReferenceSource"
                                   MeanSeaLevelDepthReferenceSource="@ActiveVolumeCalibrationUnitAndReferenceDataUtils.MeanSeaLevelDepthReferenceSource"
                                   SeaWaterLevelDepthReferenceSource="@ActiveVolumeCalibrationUnitAndReferenceDataUtils.SeaWaterLevelDepthReferenceSource"
@@ -202,6 +203,13 @@ else
                         <MudItem xs="12" md="3" Class="d-flex align-center">
                             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ImportRealtimeDataAsync" Disabled="@(!CanImportRealtimeData)">Import</MudButton>
                         </MudItem>
+                        @if (isImportingRealtimeData_)
+                        {
+                            <MudItem xs="12">
+                                <MudProgressLinear Value="@importProgressPercent_" Color="Color.Primary" />
+                                <MudText Typo="Typo.caption">@importProgressMessage</MudText>
+                            </MudItem>
+                        }
                         <MudItem xs="12" md="3">
                             <MudSelect T="ActiveVolumeImportFileFormat" Label="File format" Value="@RealtimeImportDefinition.FileFormat" ValueChanged="OnImportFileFormatChanged" ShrinkLabel>
                                 @foreach (ActiveVolumeImportFileFormat format in Enum.GetValues<ActiveVolumeImportFileFormat>())
@@ -336,6 +344,72 @@ else
                             <MudText>No realtime signal mappings have been configured.</MudText>
                         </NoRecordsContent>
                     </MudTable>
+
+                    @if (lastRealtimeImportSummary_ is not null)
+                    {
+                        <MudExpansionPanels Elevation="0" Class="mt-4">
+                            <MudExpansionPanel Text="Imported Data Summary">
+                                <MudGrid>
+                                    <MudItem xs="12" md="3">
+                                        <MudText Typo="Typo.caption">Samples</MudText>
+                                        <MudText>@lastRealtimeImportSummary_.SampleCount</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" md="3">
+                                        <MudText Typo="Typo.caption">Start</MudText>
+                                        <MudText>@FormatDate(lastRealtimeImportSummary_.StartTimeUtc)</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" md="3">
+                                        <MudText Typo="Typo.caption">End</MudText>
+                                        <MudText>@FormatDate(lastRealtimeImportSummary_.EndTimeUtc)</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" md="3">
+                                        <MudText Typo="Typo.caption">Signals</MudText>
+                                        <MudText>@lastRealtimeImportSummary_.ImportedSignalNames.Count</MudText>
+                                    </MudItem>
+                                    <MudItem xs="12">
+                                        <MudText Typo="Typo.caption">Imported signals</MudText>
+                                        <MudText>@string.Join(", ", lastRealtimeImportSummary_.ImportedSignalNames)</MudText>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudExpansionPanel>
+                        </MudExpansionPanels>
+                    }
+                </MudExpansionPanel>
+                <MudExpansionPanel Text="Realtime Data Graphs">
+                    <MudStack Spacing="3">
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText Typo="Typo.subtitle1">Case signals</MudText>
+                            <MudSpacer />
+                            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="LoadRealtimeGraphDataAsync" Disabled="@(currentCase_ is null || currentCase_.Id == Guid.Empty || isLoadingRealtimeGraphData_)">Load</MudButton>
+                        </MudStack>
+
+                        @if (isLoadingRealtimeGraphData_)
+                        {
+                            <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+                        }
+                        else if (realtimeGraphSamples_.Count == 0)
+                        {
+                            <MudText>No realtime samples are loaded for graph display.</MudText>
+                        }
+                        else
+                        {
+                            <MudGrid>
+                                <MudItem xs="12" md="6">
+                                    <MudText Typo="Typo.caption">Display start</MudText>
+                                    <MudSlider T="double" Value="@graphWindowStartPercent_" ValueChanged="OnGraphWindowStartChanged" Immediate="false" Min="0" Max="100" Step="0.5" />
+                                </MudItem>
+                                <MudItem xs="12" md="6">
+                                    <MudText Typo="Typo.caption">Display end</MudText>
+                                    <MudSlider T="double" Value="@graphWindowEndPercent_" ValueChanged="OnGraphWindowEndChanged" Immediate="false" Min="0" Max="100" Step="0.5" />
+                                </MudItem>
+                                <MudItem xs="12">
+                                    <MudText Typo="Typo.caption">@FormatGraphWindow()</MudText>
+                                </MudItem>
+                            </MudGrid>
+
+                            <PlotlyChart @key="realtimeGraphRevision_" Config="realtimeGraphConfig_" Layout="realtimeGraphLayout_" Data="realtimeGraphData_" />
+                        }
+                    </MudStack>
                 </MudExpansionPanel>
             </MudExpansionPanels>
 
@@ -414,6 +488,40 @@ else
     private bool isLoadingCase_;
     private bool isLoadingCalibration_;
     private bool isBusy_;
+    private bool isImportingRealtimeData_;
+    private bool isLoadingRealtimeGraphData_;
+    private double importProgressPercent_;
+    private string importProgressMessage_ = string.Empty;
+    private RealtimeImportSummary? lastRealtimeImportSummary_;
+    private List<ActiveVolumeSample> realtimeGraphSamples_ = new();
+    private double graphWindowStartPercent_;
+    private double graphWindowEndPercent_ = 100.0;
+    private int realtimeGraphRevision_;
+    private bool isRegisteredForUnitUpdates_;
+    private readonly Config realtimeGraphConfig_ = new() { Responsive = true };
+    private readonly Layout realtimeGraphLayout_ = new()
+    {
+        Height = 520,
+        Title = new Plotly.Blazor.LayoutLib.Title { Text = "Realtime signals" },
+        XAxis = new List<XAxis>
+        {
+            new()
+            {
+                Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Time" }
+            }
+        },
+        YAxis = new List<YAxis>
+        {
+            new()
+            {
+                Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = "Value in selected units" },
+                AutoRange = Plotly.Blazor.LayoutLib.YAxisLib.AutoRangeEnum.True,
+                ShowGrid = true
+            }
+        },
+        ShowLegend = true
+    };
+    private readonly IList<ITrace> realtimeGraphData_ = new List<ITrace>();
 
     private Guid? SelectedFieldId => ToNullableGuid(currentCase_?.FieldID);
     private Guid? SelectedClusterId => ToNullableGuid(currentCase_?.ClusterID);
@@ -433,6 +541,7 @@ else
     private bool ShowFixedWidthColumn => RealtimeImportDefinition.FileFormat == ActiveVolumeImportFileFormat.FixedWidthText;
     private bool ShowTimestampImportControls => RealtimeImportDefinition.FileFormat != ActiveVolumeImportFileFormat.Parquet;
     private bool CanImportRealtimeData => currentCase_ is not null && selectedRealtimeImportFile_ is not null && !isBusy_;
+    private string importProgressMessage => string.IsNullOrWhiteSpace(importProgressMessage_) ? "Importing realtime data..." : importProgressMessage_;
 
     private static IReadOnlyList<DelimitedFileSeparator> DelimitedSeparators { get; } =
         new[] { DelimitedFileSeparator.Comma, DelimitedFileSeparator.Semicolon, DelimitedFileSeparator.Tab, DelimitedFileSeparator.Whitespace, DelimitedFileSeparator.Custom };
@@ -464,6 +573,26 @@ else
             ActiveVolumeSignalKind.BottomHoleDepth,
             ActiveVolumeSignalKind.AxialPipeVelocity,
             ActiveVolumeSignalKind.ShakerLoadEstimate
+        };
+
+    private static IReadOnlyList<RealtimeSignalDescriptor> RealtimeSignalDescriptors { get; } =
+        new[]
+        {
+            new RealtimeSignalDescriptor(ActiveVolumeSignalKind.ActiveVolume, "Active Volume", "VolumeDrilling", false),
+            new RealtimeSignalDescriptor(ActiveVolumeSignalKind.FlowrateIn, "Flowrate In", "VolumetricFlowrateDrilling", false),
+            new RealtimeSignalDescriptor(ActiveVolumeSignalKind.FlowPaddlePosition, "Flow Paddle", "ProportionStandard", false),
+            new RealtimeSignalDescriptor(ActiveVolumeSignalKind.CoriolisVolumetricFlowrate, "Coriolis Volumetric Flowrate", "VolumetricFlowrateDrilling", false),
+            new RealtimeSignalDescriptor(ActiveVolumeSignalKind.CoriolisMassFlowrate, "Coriolis Mass Flowrate", "MassRateDrilling", false),
+            new RealtimeSignalDescriptor(ActiveVolumeSignalKind.ReturnMudDensity, "Return Mud Density", "MassDensityDrilling", false),
+            new RealtimeSignalDescriptor(ActiveVolumeSignalKind.CuttingsRecoveryRate, "Cuttings Recovery Rate", "VolumetricFlowrateDrilling", false),
+            new RealtimeSignalDescriptor(ActiveVolumeSignalKind.CuttingsP50Size, "P50 Cuttings Size", "DiameterSmall", false),
+            new RealtimeSignalDescriptor(ActiveVolumeSignalKind.StandPipePressure, "Stand Pipe Pressure", "PressureDrilling", false),
+            new RealtimeSignalDescriptor(ActiveVolumeSignalKind.InletMudTemperature, "Inlet Mud Temperature", "TemperatureDrilling", false),
+            new RealtimeSignalDescriptor(ActiveVolumeSignalKind.OutletMudTemperature, "Outlet Mud Temperature", "TemperatureDrilling", false),
+            new RealtimeSignalDescriptor(ActiveVolumeSignalKind.BottomOfStringDepth, "Bottom of String Depth", "DepthDrilling", true),
+            new RealtimeSignalDescriptor(ActiveVolumeSignalKind.BottomHoleDepth, "Bottom Hole Depth", "DepthDrilling", true),
+            new RealtimeSignalDescriptor(ActiveVolumeSignalKind.AxialPipeVelocity, "Axial Pipe Velocity", "AxialVelocityDrilling", false),
+            new RealtimeSignalDescriptor(ActiveVolumeSignalKind.ShakerLoadEstimate, "Shaker Load Estimate", "DimensionLessStandard", false)
         };
 
     private List<FieldLight> AvailableFields =>
@@ -515,6 +644,35 @@ else
         await Task.WhenAll(ReloadCasesAsync(), LoadContextDataAsync());
     }
 
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!isRegisteredForUnitUpdates_ && unitReferenceTag_ is not null)
+        {
+            unitReferenceTag_.Add(this);
+            isRegisteredForUnitUpdates_ = true;
+        }
+    }
+
+    public void ManageUnits()
+    {
+        // MudUnitAndReferenceChoiceTag raises this before UnitSystemNameChanged.
+        // Redrawing here can re-render the selector with the previous bound value.
+    }
+
+    private Task OnUnitSystemNameChanged(string unitSystemName)
+    {
+        ActiveVolumeCalibrationUnitAndReferenceDataUtils.UpdateUnitSystemName(unitSystemName);
+        UpdateRealtimeGraphPlot();
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnDepthReferenceNameChanged(string depthReferenceName)
+    {
+        ActiveVolumeCalibrationUnitAndReferenceDataUtils.UpdateDepthReferenceName(depthReferenceName);
+        UpdateRealtimeGraphPlot();
+        return InvokeAsync(StateHasChanged);
+    }
+
     private async Task ReloadCasesAsync()
     {
         cases_ = await Api.GetCasesAsync();
@@ -559,6 +717,8 @@ else
         };
         selectedCaseLight_ = ToLight(currentCase_);
         selectedCalibration_ = null;
+        realtimeGraphSamples_.Clear();
+        ResetGraphWindow();
         isEditing_ = true;
         isLoadingCase_ = false;
         isLoadingCalibration_ = false;
@@ -578,6 +738,8 @@ else
         isLoadingCase_ = true;
         selectedCalibration_ = null;
         currentCase_ = null;
+        realtimeGraphSamples_.Clear();
+        ResetGraphWindow();
 
         currentCase_ = await Api.GetCaseAsync(selectedCase.Id, includeChunks: false);
         EnsureRealtimeImportDefinition();
@@ -619,6 +781,7 @@ else
             currentCase_ = null;
             selectedCaseLight_ = null;
             selectedCalibration_ = null;
+            realtimeGraphSamples_.Clear();
             isEditing_ = false;
         }
 
@@ -669,6 +832,7 @@ else
         currentCase_ = null;
         selectedCaseLight_ = null;
         selectedCalibration_ = null;
+        realtimeGraphSamples_.Clear();
         await ReloadCasesAsync();
     }
 
@@ -1027,6 +1191,9 @@ else
         }
 
         isBusy_ = true;
+        isImportingRealtimeData_ = true;
+        lastRealtimeImportSummary_ = null;
+        await SetImportProgressAsync(0.0, "Preparing realtime import...");
         try
         {
             EnsureRealtimeImportDefinition();
@@ -1036,6 +1203,7 @@ else
                 return;
             }
 
+            await SetImportProgressAsync(5.0, "Reading selected file...");
             List<ActiveVolumeSample> samples = RealtimeImportDefinition.FileFormat == ActiveVolumeImportFileFormat.Parquet
                 ? await ReadParquetImportSamplesAsync(selectedRealtimeImportFile_, RealtimeImportDefinition)
                 : await ReadRealtimeImportSamplesAsync(selectedRealtimeImportFile_, RealtimeImportDefinition);
@@ -1047,6 +1215,7 @@ else
 
             const int chunkSize = 10000;
             int uploadedChunks = 0;
+            int totalChunks = (int)Math.Ceiling(samples.Count / (double)chunkSize);
             for (int offset = 0; offset < samples.Count; offset += chunkSize)
             {
                 List<ActiveVolumeSample> chunkSamples = samples.Skip(offset).Take(chunkSize).ToList();
@@ -1060,6 +1229,7 @@ else
                     Checksum = ComputeChunkChecksum(chunkSamples)
                 };
 
+                await SetImportProgressAsync(70.0 + (25.0 * uploadedChunks / Math.Max(totalChunks, 1)), $"Uploading chunk {uploadedChunks + 1} of {totalChunks}...");
                 if (!await Api.SaveCaseChunkAsync(currentCase_.Id, chunk.ChunkIndex, chunk))
                 {
                     Snackbar.Add($"Could not upload chunk {chunk.ChunkIndex}.", Severity.Error);
@@ -1069,8 +1239,13 @@ else
                 uploadedChunks++;
             }
 
+            await SetImportProgressAsync(98.0, "Refreshing case metadata...");
             currentCase_ = await Api.GetCaseAsync(currentCase_.Id, includeChunks: false) ?? currentCase_;
             selectedCaseLight_ = ToLight(currentCase_);
+            lastRealtimeImportSummary_ = CreateRealtimeImportSummary(samples, ImportColumns);
+            realtimeGraphSamples_ = samples;
+            ResetGraphWindow();
+            await SetImportProgressAsync(100.0, $"Imported {samples.Count} samples in {uploadedChunks} chunk(s).");
             Snackbar.Add($"Imported {samples.Count} samples in {uploadedChunks} chunk(s).", Severity.Success);
             await ReloadCasesAsync();
         }
@@ -1080,8 +1255,290 @@ else
         }
         finally
         {
+            isImportingRealtimeData_ = false;
             isBusy_ = false;
+            await InvokeAsync(StateHasChanged);
         }
+    }
+
+    private async Task LoadRealtimeGraphDataAsync()
+    {
+        if (currentCase_ is null || currentCase_.Id == Guid.Empty)
+        {
+            return;
+        }
+
+        isLoadingRealtimeGraphData_ = true;
+        try
+        {
+            ActiveVolumeCase? caseWithChunks = await Api.GetCaseAsync(currentCase_.Id, includeChunks: true);
+            if (caseWithChunks is null)
+            {
+                Snackbar.Add("Could not load realtime data chunks for this case.", Severity.Error);
+                return;
+            }
+
+            realtimeGraphSamples_ = caseWithChunks.Chunks?
+                .SelectMany(chunk => chunk.Samples ?? new List<ActiveVolumeSample>())
+                .OrderBy(sample => sample.TimestampUtc)
+                .ToList() ?? new List<ActiveVolumeSample>();
+            ResetGraphWindow();
+        }
+        finally
+        {
+            isLoadingRealtimeGraphData_ = false;
+        }
+    }
+
+    private void OnGraphWindowStartChanged(double value)
+    {
+        graphWindowStartPercent_ = Math.Clamp(value, 0.0, Math.Max(0.0, graphWindowEndPercent_ - 0.5));
+        UpdateRealtimeGraphPlot();
+    }
+
+    private void OnGraphWindowEndChanged(double value)
+    {
+        graphWindowEndPercent_ = Math.Clamp(value, Math.Min(100.0, graphWindowStartPercent_ + 0.5), 100.0);
+        UpdateRealtimeGraphPlot();
+    }
+
+    private void ResetGraphWindow()
+    {
+        graphWindowStartPercent_ = 0.0;
+        graphWindowEndPercent_ = 100.0;
+        UpdateRealtimeGraphPlot();
+    }
+
+    private string FormatGraphWindow()
+    {
+        if (realtimeGraphSamples_.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        (DateTimeOffset start, DateTimeOffset end) = GetGraphWindowBounds();
+        return $"{FormatDate(start)} to {FormatDate(end)}";
+    }
+
+    private (DateTimeOffset Start, DateTimeOffset End) GetGraphWindowBounds()
+    {
+        DateTimeOffset fullStart = realtimeGraphSamples_.Min(sample => sample.TimestampUtc);
+        DateTimeOffset fullEnd = realtimeGraphSamples_.Max(sample => sample.TimestampUtc);
+        double totalMilliseconds = Math.Max((fullEnd - fullStart).TotalMilliseconds, 1.0);
+        DateTimeOffset start = fullStart.AddMilliseconds(totalMilliseconds * graphWindowStartPercent_ / 100.0);
+        DateTimeOffset end = fullStart.AddMilliseconds(totalMilliseconds * graphWindowEndPercent_ / 100.0);
+        return start <= end ? (start, end) : (end, start);
+    }
+
+    private void UpdateRealtimeGraphPlot()
+    {
+        realtimeGraphData_.Clear();
+        if (realtimeGraphSamples_.Count == 0)
+        {
+            realtimeGraphLayout_.YAxis = new List<YAxis>();
+            return;
+        }
+
+        (DateTimeOffset start, DateTimeOffset end) = GetGraphWindowBounds();
+        List<ActiveVolumeSample> windowSamples = realtimeGraphSamples_
+            .Where(sample => sample.TimestampUtc >= start && sample.TimestampUtc <= end)
+            .OrderBy(sample => sample.TimestampUtc)
+            .ToList();
+        List<(RealtimeSignalDescriptor Descriptor, List<(DateTimeOffset Timestamp, double Value)> Points, string UnitLabel)> series = new();
+        foreach (RealtimeSignalDescriptor descriptor in RealtimeSignalDescriptors)
+        {
+            List<(DateTimeOffset Timestamp, double Value)> points = windowSamples
+                .Select(sample => (sample.TimestampUtc, Value: GetSampleSignalValue(sample, descriptor.SignalKind)))
+                .Where(point => point.Value.HasValue)
+                .Select(point => (point.TimestampUtc, ConvertGraphValueFromSI(point.Value!.Value, descriptor)))
+                .Where(point => point.Item2.HasValue)
+                .Select(point => (point.TimestampUtc, point.Item2!.Value))
+                .ToList();
+
+            if (points.Count == 0)
+            {
+                continue;
+            }
+
+            series.Add((descriptor, points, GetGraphUnitLabel(descriptor)));
+        }
+
+        ConfigureRealtimeGraphLayout(series);
+        for (int seriesIndex = 0; seriesIndex < series.Count; seriesIndex++)
+        {
+            (RealtimeSignalDescriptor descriptor, List<(DateTimeOffset Timestamp, double Value)> points, string unitLabel) = series[seriesIndex];
+            int stride = Math.Max(1, points.Count / 2000);
+            List<object> xValues = points
+                .Where((_, index) => index % stride == 0)
+                .Select(point => (object)point.Timestamp.UtcDateTime)
+                .ToList();
+            List<object> yValues = points
+                .Where((_, index) => index % stride == 0)
+                .Select(point => (object)point.Value)
+                .ToList();
+            realtimeGraphData_.Add(new Scatter
+            {
+                Name = string.IsNullOrWhiteSpace(unitLabel) ? descriptor.DisplayName : $"{descriptor.DisplayName} ({unitLabel})",
+                Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines,
+                X = xValues,
+                Y = yValues,
+                XAxis = "x",
+                YAxis = GetPlotlyAxisReference("y", seriesIndex),
+                ShowLegend = true
+            });
+        }
+
+        realtimeGraphRevision_++;
+    }
+
+    private void ConfigureRealtimeGraphLayout(List<(RealtimeSignalDescriptor Descriptor, List<(DateTimeOffset Timestamp, double Value)> Points, string UnitLabel)> series)
+    {
+        int axisCount = series.Count;
+        realtimeGraphLayout_.Height = Math.Clamp(160 + axisCount * 140, 360, 1400);
+        realtimeGraphLayout_.Title.Text = "Realtime signals";
+        realtimeGraphLayout_.ShowLegend = true;
+        realtimeGraphLayout_.XAxis = new List<XAxis>
+        {
+            new()
+            {
+                Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Time" },
+                Anchor = axisCount > 0 ? GetPlotlyAxisReference("y", axisCount - 1) : "y",
+                ShowGrid = true
+            }
+        };
+        realtimeGraphLayout_.YAxis = new List<YAxis>();
+        if (axisCount == 0)
+        {
+            return;
+        }
+
+        const double gap = 0.02;
+        double laneHeight = Math.Max((1.0 - gap * (axisCount - 1)) / axisCount, 0.02);
+        for (int index = 0; index < axisCount; index++)
+        {
+            (RealtimeSignalDescriptor descriptor, _, string unitLabel) = series[index];
+            double top = 1.0 - index * (laneHeight + gap);
+            double bottom = Math.Max(0.0, top - laneHeight);
+            string title = string.IsNullOrWhiteSpace(unitLabel) ? descriptor.DisplayName : $"{descriptor.DisplayName}<br>({unitLabel})";
+            realtimeGraphLayout_.YAxis.Add(new YAxis
+            {
+                Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = title },
+                Domain = new List<object> { bottom, top },
+                Anchor = "x",
+                AutoRange = Plotly.Blazor.LayoutLib.YAxisLib.AutoRangeEnum.True,
+                ShowGrid = true
+            });
+        }
+    }
+
+    private static string GetPlotlyAxisReference(string axisPrefix, int zeroBasedIndex) =>
+        zeroBasedIndex == 0 ? axisPrefix : $"{axisPrefix}{zeroBasedIndex + 1}";
+
+    private double? ConvertGraphValueFromSI(double value, RealtimeSignalDescriptor descriptor)
+    {
+        if (unitReferenceTag_ is null)
+        {
+            return value;
+        }
+
+        if (descriptor.UsesDepthReference)
+        {
+            string? converted = unitReferenceTag_.FromWGS84DepthSI(value, descriptor.PhysicalQuantity, false);
+            if (double.TryParse(converted, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.CurrentCulture, out double currentCultureValue))
+            {
+                return currentCultureValue;
+            }
+
+            return double.TryParse(converted, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out double invariantValue)
+                ? invariantValue
+                : null;
+        }
+
+        return unitReferenceTag_.FromSI(value, descriptor.PhysicalQuantity);
+    }
+
+    private string GetGraphUnitLabel(RealtimeSignalDescriptor descriptor)
+    {
+        if (unitReferenceTag_ is null)
+        {
+            return string.Empty;
+        }
+
+        return descriptor.UsesDepthReference
+            ? unitReferenceTag_.GetDepthUnitLabel(descriptor.PhysicalQuantity) ?? string.Empty
+            : unitReferenceTag_.GetUnitLabel(descriptor.PhysicalQuantity) ?? string.Empty;
+    }
+
+    private static double? GetSampleSignalValue(ActiveVolumeSample sample, ActiveVolumeSignalKind signalKind)
+    {
+        return signalKind switch
+        {
+            ActiveVolumeSignalKind.ActiveVolume => sample.ActiveVolume,
+            ActiveVolumeSignalKind.FlowrateIn => sample.FlowrateIn,
+            ActiveVolumeSignalKind.FlowPaddlePosition => sample.FlowPaddlePosition,
+            ActiveVolumeSignalKind.CoriolisVolumetricFlowrate => sample.CoriolisVolumetricFlowrate,
+            ActiveVolumeSignalKind.CoriolisMassFlowrate => sample.CoriolisMassFlowrate,
+            ActiveVolumeSignalKind.ReturnMudDensity => sample.ReturnMudDensity,
+            ActiveVolumeSignalKind.CuttingsRecoveryRate => sample.CuttingsRecoveryRate,
+            ActiveVolumeSignalKind.StandPipePressure => sample.StandPipePressure,
+            ActiveVolumeSignalKind.InletMudTemperature => sample.InletMudTemperature,
+            ActiveVolumeSignalKind.OutletMudTemperature => sample.OutletMudTemperature,
+            ActiveVolumeSignalKind.BottomOfStringDepth => sample.BottomOfStringDepth,
+            ActiveVolumeSignalKind.BottomHoleDepth => sample.BottomHoleDepth,
+            ActiveVolumeSignalKind.AxialPipeVelocity => sample.AxialPipeVelocity,
+            ActiveVolumeSignalKind.CuttingsP50Size => sample.AdditionalSignals != null && sample.AdditionalSignals.TryGetValue("CuttingsP50Size", out double p50) ? p50 : null,
+            ActiveVolumeSignalKind.ShakerLoadEstimate => sample.AdditionalSignals != null && sample.AdditionalSignals.TryGetValue("ShakerLoadEstimate", out double shakerLoad) ? shakerLoad : null,
+            _ => null
+        };
+    }
+
+    private async Task SetImportProgressAsync(double percent, string message)
+    {
+        importProgressPercent_ = Math.Clamp(percent, 0.0, 100.0);
+        importProgressMessage_ = message;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private static RealtimeImportSummary CreateRealtimeImportSummary(
+        List<ActiveVolumeSample> samples,
+        List<DelimitedColumnMapping> mappings)
+    {
+        List<string> importedSignalNames = mappings
+            .Where(mapping => mapping.SignalKind is not ActiveVolumeSignalKind.Ignore and not ActiveVolumeSignalKind.Timestamp and not ActiveVolumeSignalKind.RelativeSeconds)
+            .Where(mapping => samples.Any(sample => HasImportedValue(sample, mapping.SignalKind)))
+            .Select(mapping => FormatSignalKind(mapping.SignalKind))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(signalName => signalName)
+            .ToList();
+
+        return new RealtimeImportSummary(
+            SampleCount: samples.Count,
+            StartTimeUtc: samples.Min(sample => sample.TimestampUtc),
+            EndTimeUtc: samples.Max(sample => sample.TimestampUtc),
+            ImportedSignalNames: importedSignalNames);
+    }
+
+    private static bool HasImportedValue(ActiveVolumeSample sample, ActiveVolumeSignalKind signalKind)
+    {
+        return signalKind switch
+        {
+            ActiveVolumeSignalKind.ActiveVolume => sample.ActiveVolume.HasValue,
+            ActiveVolumeSignalKind.FlowrateIn => sample.FlowrateIn.HasValue,
+            ActiveVolumeSignalKind.FlowPaddlePosition => sample.FlowPaddlePosition.HasValue,
+            ActiveVolumeSignalKind.CoriolisVolumetricFlowrate => sample.CoriolisVolumetricFlowrate.HasValue,
+            ActiveVolumeSignalKind.CoriolisMassFlowrate => sample.CoriolisMassFlowrate.HasValue,
+            ActiveVolumeSignalKind.ReturnMudDensity => sample.ReturnMudDensity.HasValue,
+            ActiveVolumeSignalKind.CuttingsRecoveryRate => sample.CuttingsRecoveryRate.HasValue,
+            ActiveVolumeSignalKind.StandPipePressure => sample.StandPipePressure.HasValue,
+            ActiveVolumeSignalKind.InletMudTemperature => sample.InletMudTemperature.HasValue,
+            ActiveVolumeSignalKind.OutletMudTemperature => sample.OutletMudTemperature.HasValue,
+            ActiveVolumeSignalKind.BottomOfStringDepth => sample.BottomOfStringDepth.HasValue,
+            ActiveVolumeSignalKind.BottomHoleDepth => sample.BottomHoleDepth.HasValue,
+            ActiveVolumeSignalKind.AxialPipeVelocity => sample.AxialPipeVelocity.HasValue,
+            ActiveVolumeSignalKind.CuttingsP50Size => sample.AdditionalSignals.ContainsKey("CuttingsP50Size"),
+            ActiveVolumeSignalKind.ShakerLoadEstimate => sample.AdditionalSignals.ContainsKey("ShakerLoadEstimate"),
+            _ => false
+        };
     }
 
     private async Task<List<ActiveVolumeSample>> ReadParquetImportSamplesAsync(IBrowserFile file, DelimitedImportDefinition definition)
@@ -1093,14 +1550,21 @@ else
 
         await using ParquetReader reader = await ParquetReader.CreateAsync(memoryStream);
         DataField[] dataFields = reader.Schema.GetDataFields();
-        DataField timestampField = ResolveParquetTimestampField(dataFields);
         List<DelimitedColumnMapping> mappings = ImportColumns
             .Where(mapping => mapping.SignalKind is not ActiveVolumeSignalKind.Ignore and not ActiveVolumeSignalKind.Timestamp and not ActiveVolumeSignalKind.RelativeSeconds)
             .ToList();
+
+        if (IsLongFormatParquet(dataFields))
+        {
+            return await ReadLongFormatParquetImportSamplesAsync(reader, dataFields, mappings);
+        }
+
+        DataField timestampField = ResolveParquetTimestampField(dataFields);
         List<ActiveVolumeSample> samples = new();
 
         for (int rowGroupIndex = 0; rowGroupIndex < reader.RowGroupCount; rowGroupIndex++)
         {
+            await SetImportProgressAsync(10.0 + (55.0 * rowGroupIndex / Math.Max(reader.RowGroupCount, 1)), $"Reading Parquet row group {rowGroupIndex + 1} of {reader.RowGroupCount}...");
             using ParquetRowGroupReader rowGroupReader = reader.OpenRowGroupReader(rowGroupIndex);
             int rowCount = checked((int)rowGroupReader.RowCount);
             object?[] timestampValues = await ReadParquetColumnValuesAsync(rowGroupReader, timestampField, rowCount);
@@ -1141,7 +1605,78 @@ else
             }
         }
 
+        await SetImportProgressAsync(68.0, "Sorting imported Parquet samples...");
         return samples.OrderBy(sample => sample.TimestampUtc).ToList();
+    }
+
+    private static bool IsLongFormatParquet(DataField[] dataFields) =>
+        dataFields.Any(field => string.Equals(field.Name, "variablename", StringComparison.OrdinalIgnoreCase)) &&
+        dataFields.Any(field => string.Equals(field.Name, "logdatetime", StringComparison.OrdinalIgnoreCase)) &&
+        dataFields.Any(field =>
+            string.Equals(field.Name, "value_double", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(field.Name, "value_int", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(field.Name, "value_text", StringComparison.OrdinalIgnoreCase));
+
+    private async Task<List<ActiveVolumeSample>> ReadLongFormatParquetImportSamplesAsync(
+        ParquetReader reader,
+        DataField[] dataFields,
+        List<DelimitedColumnMapping> mappings)
+    {
+        DataField timestampField = ResolveParquetDataField(dataFields, "logdatetime");
+        DataField variableNameField = ResolveParquetDataField(dataFields, "variablename");
+        DataField? doubleValueField = dataFields.FirstOrDefault(field => string.Equals(field.Name, "value_double", StringComparison.OrdinalIgnoreCase));
+        DataField? intValueField = dataFields.FirstOrDefault(field => string.Equals(field.Name, "value_int", StringComparison.OrdinalIgnoreCase));
+        DataField? textValueField = dataFields.FirstOrDefault(field => string.Equals(field.Name, "value_text", StringComparison.OrdinalIgnoreCase));
+        Dictionary<string, DelimitedColumnMapping> mappingsBySignalName = mappings
+            .Where(mapping => !string.IsNullOrWhiteSpace(mapping.FieldName))
+            .GroupBy(mapping => mapping.FieldName, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+        SortedDictionary<DateTimeOffset, ActiveVolumeSample> samplesByTimestamp = new();
+
+        for (int rowGroupIndex = 0; rowGroupIndex < reader.RowGroupCount; rowGroupIndex++)
+        {
+            await SetImportProgressAsync(10.0 + (55.0 * rowGroupIndex / Math.Max(reader.RowGroupCount, 1)), $"Reading long-format Parquet row group {rowGroupIndex + 1} of {reader.RowGroupCount}...");
+            using ParquetRowGroupReader rowGroupReader = reader.OpenRowGroupReader(rowGroupIndex);
+            int rowCount = checked((int)rowGroupReader.RowCount);
+            object?[] timestampValues = await ReadParquetColumnValuesAsync(rowGroupReader, timestampField, rowCount);
+            object?[] variableNameValues = await ReadParquetColumnValuesAsync(rowGroupReader, variableNameField, rowCount);
+            object?[] doubleValues = doubleValueField is not null ? await ReadParquetColumnValuesAsync(rowGroupReader, doubleValueField, rowCount) : Array.Empty<object?>();
+            object?[] intValues = intValueField is not null ? await ReadParquetColumnValuesAsync(rowGroupReader, intValueField, rowCount) : Array.Empty<object?>();
+            object?[] textValues = textValueField is not null ? await ReadParquetColumnValuesAsync(rowGroupReader, textValueField, rowCount) : Array.Empty<object?>();
+
+            for (int rowIndex = 0; rowIndex < rowCount; rowIndex++)
+            {
+                string? signalName = variableNameValues[rowIndex]?.ToString();
+                if (string.IsNullOrWhiteSpace(signalName) || !mappingsBySignalName.TryGetValue(signalName, out DelimitedColumnMapping? mapping))
+                {
+                    continue;
+                }
+
+                DateTimeOffset? timestampUtc = ConvertParquetTimestampToUtc(timestampValues[rowIndex]);
+                double? value = ConvertParquetLongFormatValueToDouble(doubleValues, intValues, textValues, rowIndex);
+                if (!timestampUtc.HasValue || !value.HasValue)
+                {
+                    continue;
+                }
+
+                if (!samplesByTimestamp.TryGetValue(timestampUtc.Value, out ActiveVolumeSample? sample))
+                {
+                    sample = new ActiveVolumeSample
+                    {
+                        TimestampUtc = timestampUtc.Value,
+                        AdditionalSignals = new Dictionary<string, double>(),
+                        QualityFlags = new Dictionary<string, string>(),
+                        CuttingsParticleSizeDistribution = new List<double>()
+                    };
+                    samplesByTimestamp[timestampUtc.Value] = sample;
+                }
+
+                AssignSampleValue(sample, mapping.SignalKind, ConvertToSI(value.Value, mapping));
+            }
+        }
+
+        await SetImportProgressAsync(68.0, "Collecting imported Parquet samples...");
+        return samplesByTimestamp.Values.ToList();
     }
 
     private static DataField ResolveParquetTimestampField(DataField[] dataFields)
@@ -1280,10 +1815,32 @@ else
         };
     }
 
+    private static double? ConvertParquetLongFormatValueToDouble(
+        object?[] doubleValues,
+        object?[] intValues,
+        object?[] textValues,
+        int rowIndex)
+    {
+        double? value = rowIndex < doubleValues.Length ? ConvertParquetValueToDouble(doubleValues[rowIndex]) : null;
+        if (value.HasValue)
+        {
+            return value;
+        }
+
+        value = rowIndex < intValues.Length ? ConvertParquetValueToDouble(intValues[rowIndex]) : null;
+        if (value.HasValue)
+        {
+            return value;
+        }
+
+        return rowIndex < textValues.Length ? ConvertParquetValueToDouble(textValues[rowIndex]) : null;
+    }
+
     private async Task<List<ActiveVolumeSample>> ReadRealtimeImportSamplesAsync(IBrowserFile file, DelimitedImportDefinition definition)
     {
         using Stream stream = file.OpenReadStream(maxAllowedSize: 1024L * 1024L * 1024L);
         using StreamReader reader = new(stream);
+        await SetImportProgressAsync(10.0, "Reading ASCII file...");
         string content = await reader.ReadToEndAsync();
         string[] lines = content.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n', StringSplitOptions.RemoveEmptyEntries);
         int startIndex = definition.HasHeader ? 1 : 0;
@@ -1292,6 +1849,13 @@ else
 
         for (int i = startIndex; i < lines.Length; i++)
         {
+            if ((i - startIndex) % 1000 == 0)
+            {
+                double parsedLineCount = Math.Max(i - startIndex, 0);
+                double totalLineCount = Math.Max(lines.Length - startIndex, 1);
+                await SetImportProgressAsync(15.0 + (50.0 * parsedLineCount / totalLineCount), $"Parsing ASCII line {i + 1} of {lines.Length}...");
+            }
+
             string line = lines[i];
             if (string.IsNullOrWhiteSpace(line))
             {
@@ -1305,6 +1869,7 @@ else
             }
         }
 
+        await SetImportProgressAsync(68.0, "Sorting imported ASCII samples...");
         return samples.OrderBy(sample => sample.TimestampUtc).ToList();
     }
 
@@ -1936,4 +2501,16 @@ else
         ActiveVolumeCaseProcessingState.Failed or ActiveVolumeCaseProcessingState.Interrupted => Color.Error,
         _ => Color.Info
     };
+
+    private sealed record RealtimeImportSummary(
+        int SampleCount,
+        DateTimeOffset StartTimeUtc,
+        DateTimeOffset EndTimeUtc,
+        List<string> ImportedSignalNames);
+
+    private sealed record RealtimeSignalDescriptor(
+        ActiveVolumeSignalKind SignalKind,
+        string DisplayName,
+        string PhysicalQuantity,
+        bool UsesDepthReference);
 }
