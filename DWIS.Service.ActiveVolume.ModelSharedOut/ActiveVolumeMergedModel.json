@@ -5011,9 +5011,6 @@
               "$ref": "#/components/schemas/ActiveVolumeCaseBatchImportItem"
             },
             "nullable": true
-          },
-          "light": {
-            "$ref": "#/components/schemas/ActiveVolumeCaseBatchImportLight"
           }
         }
       },

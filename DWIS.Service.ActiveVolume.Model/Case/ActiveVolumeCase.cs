@@ -7,7 +7,7 @@ namespace DWIS.Service.ActiveVolume.Model.Case
     {
         public Guid ID { get; set; } = Guid.NewGuid();
         public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
         public DateTimeOffset CreationDate { get; set; } = DateTimeOffset.UtcNow;
         public DateTimeOffset LastModificationDate { get; set; } = DateTimeOffset.UtcNow;
         public Guid FieldID { get; set; }
@@ -22,7 +22,7 @@ namespace DWIS.Service.ActiveVolume.Model.Case
         public string HoleSection { get; set; } = string.Empty;
         public ActiveVolumeCaseProcessingState ProcessingState { get; set; } = ActiveVolumeCaseProcessingState.Created;
         public double ProcessingProgress { get; set; }
-        public string ProcessingMessage { get; set; } = string.Empty;
+        public string? ProcessingMessage { get; set; }
         public int LastProcessedChunkIndex { get; set; } = -1;
         public int ChunkCount { get; set; }
         public long SampleCount { get; set; }
@@ -51,7 +51,7 @@ namespace DWIS.Service.ActiveVolume.Model.Case
         public ReturnFlowMeasurementMode ReturnFlowMeasurementMode { get; set; }
         public ActiveVolumeCaseProcessingState ProcessingState { get; set; }
         public double ProcessingProgress { get; set; }
-        public string ProcessingMessage { get; set; } = string.Empty;
+        public string? ProcessingMessage { get; set; }
         public int LastProcessedChunkIndex { get; set; }
         public int ChunkCount { get; set; }
         public long SampleCount { get; set; }
@@ -77,7 +77,7 @@ namespace DWIS.Service.ActiveVolume.Model.Case
                 ReturnFlowMeasurementMode = data.ReturnFlowMeasurementMode,
                 ProcessingState = data.ProcessingState,
                 ProcessingProgress = data.ProcessingProgress,
-                ProcessingMessage = data.ProcessingMessage,
+                ProcessingMessage = data.ProcessingMessage ?? string.Empty,
                 LastProcessedChunkIndex = data.LastProcessedChunkIndex,
                 ChunkCount = data.ChunkCount,
                 SampleCount = data.SampleCount,

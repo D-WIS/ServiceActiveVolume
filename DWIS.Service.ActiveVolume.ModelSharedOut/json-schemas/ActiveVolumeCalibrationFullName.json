@@ -1265,9 +1265,6 @@
               "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeCaseBatchImportItem"
             },
             "nullable": true
-          },
-          "light": {
-            "$ref": "#/components/schemas/DWIS.Service.ActiveVolume.Model.Import.ActiveVolumeCaseBatchImportLight"
           }
         },
         "additionalProperties": false

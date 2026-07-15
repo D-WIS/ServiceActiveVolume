@@ -62,7 +62,7 @@ namespace DWIS.Service.ActiveVolume.Model.Import
 
     public sealed class DelimitedImportDefinition
     {
-        public string FileName { get; set; } = string.Empty;
+        public string? FileName { get; set; }
         public ActiveVolumeImportFileFormat FileFormat { get; set; } = ActiveVolumeImportFileFormat.DelimitedText;
         public DelimitedFileSeparator Separator { get; set; } = DelimitedFileSeparator.Comma;
         public string CustomSeparator { get; set; } = ",";
@@ -81,9 +81,10 @@ namespace DWIS.Service.ActiveVolume.Model.Import
         public DateTimeOffset CreationDate { get; set; } = DateTimeOffset.UtcNow;
         public ActiveVolumeCaseProcessingState ProcessingState { get; set; } = ActiveVolumeCaseProcessingState.Created;
         public double ProcessingProgress { get; set; }
-        public string ProcessingMessage { get; set; } = string.Empty;
+        public string? ProcessingMessage { get; set; }
         public List<ActiveVolumeCaseBatchImportItem> Items { get; set; } = new();
 
+        [System.Text.Json.Serialization.JsonIgnore]
         public ActiveVolumeCaseBatchImportLight Light => ActiveVolumeCaseBatchImportLight.FromBatchImport(this);
     }
 
@@ -94,7 +95,7 @@ namespace DWIS.Service.ActiveVolume.Model.Import
         public DateTimeOffset CreationDate { get; set; }
         public ActiveVolumeCaseProcessingState ProcessingState { get; set; }
         public double ProcessingProgress { get; set; }
-        public string ProcessingMessage { get; set; } = string.Empty;
+        public string? ProcessingMessage { get; set; }
         public int ItemCount { get; set; }
         public int CreatedCaseCount { get; set; }
 
@@ -107,7 +108,7 @@ namespace DWIS.Service.ActiveVolume.Model.Import
                 CreationDate = data.CreationDate,
                 ProcessingState = data.ProcessingState,
                 ProcessingProgress = data.ProcessingProgress,
-                ProcessingMessage = data.ProcessingMessage,
+                ProcessingMessage = data.ProcessingMessage ?? string.Empty,
                 ItemCount = data.Items.Count,
                 CreatedCaseCount = data.Items.Count(item => item.CreatedCaseID.HasValue)
             };
@@ -117,11 +118,11 @@ namespace DWIS.Service.ActiveVolume.Model.Import
     public sealed class ActiveVolumeCaseBatchImportItem
     {
         public Guid ID { get; set; } = Guid.NewGuid();
-        public string FileName { get; set; } = string.Empty;
+        public string? FileName { get; set; }
         public ActiveVolumeCase CaseMetadata { get; set; } = new();
         public DelimitedImportDefinition ImportDefinition { get; set; } = new();
         public Guid? CreatedCaseID { get; set; }
         public ActiveVolumeCaseProcessingState ProcessingState { get; set; } = ActiveVolumeCaseProcessingState.Created;
-        public string ProcessingMessage { get; set; } = string.Empty;
+        public string? ProcessingMessage { get; set; }
     }
 }

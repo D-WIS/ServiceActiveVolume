@@ -12079,9 +12079,6 @@ namespace NORCE.Drilling.ActiveVolume.ModelSharedOut
         [System.Text.Json.Serialization.JsonPropertyName("items")]
         public System.Collections.Generic.ICollection<ActiveVolumeCaseBatchImportItem> Items { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("light")]
-        public ActiveVolumeCaseBatchImportLight Light { get; set; }
-
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
