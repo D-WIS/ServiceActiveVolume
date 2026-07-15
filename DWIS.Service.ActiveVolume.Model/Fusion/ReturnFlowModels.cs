@@ -18,8 +18,7 @@ namespace DWIS.Service.ActiveVolume.Model.Fusion
             return context.ReturnFlowMeasurementMode switch
             {
                 ReturnFlowMeasurementMode.FlowPaddle => flowPaddle_.EstimateReturnFlow(sample, context, calibration),
-                ReturnFlowMeasurementMode.CoriolisVolumetric => coriolis_.EstimateReturnFlow(sample, context, calibration),
-                ReturnFlowMeasurementMode.CoriolisMass => coriolis_.EstimateReturnFlow(sample, context, calibration),
+                ReturnFlowMeasurementMode.CoriolisFlowmeter => coriolis_.EstimateReturnFlow(sample, context, calibration),
                 _ => Math.Max(0.0, sample.FlowrateIn ?? 0.0)
             };
         }
@@ -59,14 +58,9 @@ namespace DWIS.Service.ActiveVolume.Model.Fusion
                 ? value
                 : 1.0;
 
-            if (context.ReturnFlowMeasurementMode == ReturnFlowMeasurementMode.CoriolisMass)
+            double density = sample.ReturnMudDensity ?? 0.0;
+            if (sample.CoriolisMassFlowrate.HasValue && density > 0.0)
             {
-                double density = sample.ReturnMudDensity ?? 0.0;
-                if (density <= 0.0)
-                {
-                    return 0.0;
-                }
-
                 return Math.Max(0.0, scale * (sample.CoriolisMassFlowrate ?? 0.0) / density);
             }
 

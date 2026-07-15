@@ -7,7 +7,9 @@ namespace DWIS.Service.ActiveVolume.CalibrationWebPages
         Task<List<ActiveVolumeCaseLight>> GetCasesAsync(CancellationToken cancellationToken = default);
         Task<ActiveVolumeCase?> GetCaseAsync(Guid id, bool includeChunks = false, CancellationToken cancellationToken = default);
         Task<bool> SaveCaseAsync(ActiveVolumeCase activeCase, CancellationToken cancellationToken = default);
+        string LastErrorMessage { get; }
         Task<bool> DeleteCaseAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<bool> SaveCaseChunkAsync(Guid id, int chunkIndex, ActiveVolumeCaseChunk chunk, CancellationToken cancellationToken = default);
         Task<Guid?> ProcessCaseAsync(Guid id, CancellationToken cancellationToken = default);
         Task<CalibrationRecord?> GetCalibrationAsync(Guid id, CancellationToken cancellationToken = default);
         Task<List<ActiveVolumeCaseBatchImportLight>> GetBatchImportsAsync(CancellationToken cancellationToken = default);
@@ -42,6 +44,8 @@ namespace DWIS.Service.ActiveVolume.CalibrationWebPages
         public string HostNameUnitConversion => configuration_.UnitConversionHostURL;
 
         public string HostBasePathUnitConversion => UnitConversionHostBasePath;
+
+        public string LastErrorMessage { get; private set; } = string.Empty;
 
         public async Task<List<ActiveVolumeCaseLight>> GetCasesAsync(CancellationToken cancellationToken = default)
         {
@@ -81,13 +85,16 @@ namespace DWIS.Service.ActiveVolume.CalibrationWebPages
 
         public async Task<bool> SaveCaseAsync(ActiveVolumeCase activeCase, CancellationToken cancellationToken = default)
         {
+            LastErrorMessage = string.Empty;
             Client? client = CreateClient();
             if (client is null)
             {
+                LastErrorMessage = "ActiveVolume calibration API client could not be created.";
                 return false;
             }
 
             bool isNew = activeCase.Id == Guid.Empty;
+            Guid originalId = activeCase.Id;
             activeCase.Id = isNew ? Guid.NewGuid() : activeCase.Id;
             try
             {
@@ -102,8 +109,16 @@ namespace DWIS.Service.ActiveVolume.CalibrationWebPages
 
                 return true;
             }
+            catch (ApiException exception)
+            {
+                activeCase.Id = originalId;
+                LastErrorMessage = $"HTTP {exception.StatusCode}: {exception.Response}";
+                return false;
+            }
             catch (Exception exception) when (IsClientException(exception))
             {
+                activeCase.Id = originalId;
+                LastErrorMessage = exception.Message;
                 return false;
             }
         }
@@ -119,6 +134,25 @@ namespace DWIS.Service.ActiveVolume.CalibrationWebPages
             try
             {
                 await client.DeleteActiveVolumeCaseByIdAsync(id, cancellationToken);
+                return true;
+            }
+            catch (Exception exception) when (IsClientException(exception))
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> SaveCaseChunkAsync(Guid id, int chunkIndex, ActiveVolumeCaseChunk chunk, CancellationToken cancellationToken = default)
+        {
+            Client? client = CreateClient();
+            if (client is null)
+            {
+                return false;
+            }
+
+            try
+            {
+                await client.PutActiveVolumeCaseChunkAsync(id, chunkIndex, chunk, cancellationToken);
                 return true;
             }
             catch (Exception exception) when (IsClientException(exception))

@@ -16,7 +16,7 @@ namespace DWIS.Service.ActiveVolume.Model.Case
         public Guid WellBoreID { get; set; }
         public Guid WellBoreArchitectureID { get; set; }
         public Guid DrillStringID { get; set; }
-        public ReturnFlowMeasurementMode ReturnFlowMeasurementMode { get; set; } = ReturnFlowMeasurementMode.Unknown;
+        public ReturnFlowMeasurementMode ReturnFlowMeasurementMode { get; set; } = ReturnFlowMeasurementMode.FlowPaddle;
         public string RigName { get; set; } = string.Empty;
         public string MudSystem { get; set; } = string.Empty;
         public string HoleSection { get; set; } = string.Empty;

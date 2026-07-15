@@ -42,7 +42,7 @@
                         <MudProgressLinear Value="@ToPercent(context.ProcessingProgress)" Color="@GetProcessingProgressColor(context.ProcessingState)" />
                         <MudText Typo="Typo.caption">@FormatPercent(context.ProcessingProgress)</MudText>
                     </MudTd>
-                    <MudTd DataLabel="Return Flow">@context.ReturnFlowMeasurementMode</MudTd>
+                    <MudTd DataLabel="Return Flow">@FormatReturnFlowMeasurementMode(context.ReturnFlowMeasurementMode)</MudTd>
                     <MudTd DataLabel="Calibration">@FormatCalibrationSummary(context)</MudTd>
                     <MudTd DataLabel="Last Updated">@FormatDate(context.LastModificationDate)</MudTd>
                     <MudTd>
@@ -115,10 +115,10 @@ else
                         <MudTextField @bind-Value="currentCase_.Description" Label="Description" ShrinkLabel />
                     </MudItem>
                     <MudItem xs="12" md="3">
-                        <MudSelect T="ReturnFlowMeasurementMode" Label="Return flow measurement" @bind-Value="currentCase_.ReturnFlowMeasurementMode" ShrinkLabel>
-                            @foreach (ReturnFlowMeasurementMode mode in Enum.GetValues<ReturnFlowMeasurementMode>())
+                        <MudSelect T="ReturnFlowMeasurementMode" Label="Return flow measurement" Value="@currentCase_.ReturnFlowMeasurementMode" ValueChanged="OnReturnFlowMeasurementModeChanged" ShrinkLabel>
+                            @foreach (ReturnFlowMeasurementMode mode in ReturnFlowMeasurementModes)
                             {
-                                <MudSelectItem T="ReturnFlowMeasurementMode" Value="@mode">@mode</MudSelectItem>
+                                <MudSelectItem T="ReturnFlowMeasurementMode" Value="@mode">@FormatReturnFlowMeasurementMode(mode)</MudSelectItem>
                             }
                         </MudSelect>
                     </MudItem>
@@ -193,6 +193,15 @@ else
             <MudExpansionPanels Elevation="1">
                 <MudExpansionPanel Text="Realtime Data Import">
                     <MudGrid>
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="RealtimeImportDefinition.FileName" Label="File name" ShrinkLabel />
+                        </MudItem>
+                        <MudItem xs="12" md="6" Class="d-flex align-center">
+                            <InputFile OnChange="OnRealtimeImportFileSelected" />
+                        </MudItem>
+                        <MudItem xs="12" md="3" Class="d-flex align-center">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ImportRealtimeDataAsync" Disabled="@(!CanImportRealtimeData)">Import</MudButton>
+                        </MudItem>
                         <MudItem xs="12" md="3">
                             <MudSelect T="ActiveVolumeImportFileFormat" Label="File format" Value="@RealtimeImportDefinition.FileFormat" ValueChanged="OnImportFileFormatChanged" ShrinkLabel>
                                 @foreach (ActiveVolumeImportFileFormat format in Enum.GetValues<ActiveVolumeImportFileFormat>())
@@ -224,70 +233,85 @@ else
                                 <MudCheckBox T="bool" @bind-Value="RealtimeImportDefinition.HasHeader" Label="Header row" />
                             </MudItem>
                         }
-                        <MudItem xs="12" md="3">
-                            <MudTextField @bind-Value="RealtimeImportDefinition.TimestampFormat" Label="Timestamp format" ShrinkLabel />
-                        </MudItem>
-                        <MudItem xs="12" md="3">
-                            <MudSelect T="TimestampStorageKind" Label="Timestamp zone" @bind-Value="RealtimeImportDefinition.TimestampStorageKind" ShrinkLabel>
-                                @foreach (TimestampStorageKind kind in Enum.GetValues<TimestampStorageKind>())
-                                {
-                                    <MudSelectItem T="TimestampStorageKind" Value="@kind">@FormatTimestampKind(kind)</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem xs="12" md="6">
-                            <MudSelect T="string" Label="Local time zone" @bind-Value="RealtimeImportDefinition.LocalTimeZoneId" ShrinkLabel Clearable="true" Disabled="@(RealtimeImportDefinition.TimestampStorageKind != TimestampStorageKind.LocalTime)">
-                                @foreach (string timeZoneId in TimeZoneIds)
-                                {
-                                    <MudSelectItem T="string" Value="@timeZoneId">@timeZoneId</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
+                        @if (ShowTimestampImportControls)
+                        {
+                            <MudItem xs="12" md="3">
+                                <MudTextField @bind-Value="RealtimeImportDefinition.TimestampFormat" Label="Timestamp format" ShrinkLabel />
+                            </MudItem>
+                            <MudItem xs="12" md="3">
+                                <MudSelect T="TimestampStorageKind" Label="Timestamp zone" @bind-Value="RealtimeImportDefinition.TimestampStorageKind" ShrinkLabel>
+                                    @foreach (TimestampStorageKind kind in Enum.GetValues<TimestampStorageKind>())
+                                    {
+                                        <MudSelectItem T="TimestampStorageKind" Value="@kind">@FormatTimestampKind(kind)</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudSelect T="string" Label="Local time zone" @bind-Value="RealtimeImportDefinition.LocalTimeZoneId" ShrinkLabel Clearable="true" Disabled="@(RealtimeImportDefinition.TimestampStorageKind != TimestampStorageKind.LocalTime)">
+                                    @foreach (string timeZoneId in TimeZoneIds)
+                                    {
+                                        <MudSelectItem T="string" Value="@timeZoneId">@timeZoneId</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                        }
                     </MudGrid>
 
                     <MudStack Row AlignItems="AlignItems.Center" Class="mt-4">
                         <MudText Typo="Typo.subtitle1">Signal mappings</MudText>
                         <MudButton OnClick="AddImportColumnMapping" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
+                        <MudButton OnClick="DeleteSelectedImportColumnMappings" Color="@Color.Error" Class="add-item-btn" Disabled="@(!selectedImportColumns_.Any())">Delete</MudButton>
                     </MudStack>
-                    <MudTable Items="@ImportColumns" T="DelimitedColumnMapping" Dense="true" Hover="true" Bordered="true">
+                    <MudTable Items="@ImportColumns" T="DelimitedColumnMapping" MultiSelection="true" @bind-SelectedItems="selectedImportColumns_" Dense="true" Hover="true" Bordered="true">
                         <HeaderContent>
                             <MudTh>Signal</MudTh>
-                            <MudTh>Source</MudTh>
-                            <MudTh>Fixed width</MudTh>
+                            @if (ShowImportSourceColumn)
+                            {
+                                <MudTh>Source</MudTh>
+                            }
+                            @if (ShowFixedWidthColumn)
+                            {
+                                <MudTh>Fixed width</MudTh>
+                            }
                             <MudTh>Quantity</MudTh>
                             <MudTh>Unit</MudTh>
                             <MudTh>Depth reference</MudTh>
-                            <MudTh></MudTh>
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd DataLabel="Signal">
                                 <MudSelect T="ActiveVolumeSignalKind" Value="@context.SignalKind" ValueChanged="@((ActiveVolumeSignalKind signalKind) => OnImportSignalKindChanged(context, signalKind))" Dense="true" ShrinkLabel>
-                                    @foreach (ActiveVolumeSignalKind signalKind in ImportableSignalKinds)
+                                    @foreach (ActiveVolumeSignalKind signalKind in GetImportableSignalKinds())
                                     {
                                         <MudSelectItem T="ActiveVolumeSignalKind" Value="@signalKind">@FormatSignalKind(signalKind)</MudSelectItem>
                                     }
                                 </MudSelect>
                             </MudTd>
-                            <MudTd DataLabel="Source">
-                                @if (RealtimeImportDefinition.FileFormat == ActiveVolumeImportFileFormat.Parquet)
-                                {
-                                    <MudTextField @bind-Value="context.FieldName" Label="Field" ShrinkLabel />
-                                }
-                                else
-                                {
-                                    <MudNumericField T="int" @bind-Value="context.ColumnIndex" Label="Column" Min="0" ShrinkLabel />
-                                }
-                            </MudTd>
-                            <MudTd DataLabel="Fixed width">
-                                <MudGrid>
-                                    <MudItem xs="6">
-                                        <MudNumericField T="int" @bind-Value="context.FixedWidthStartIndex" Label="Start" Min="0" ShrinkLabel Disabled="@(RealtimeImportDefinition.FileFormat != ActiveVolumeImportFileFormat.FixedWidthText)" />
-                                    </MudItem>
-                                    <MudItem xs="6">
-                                        <MudNumericField T="int" @bind-Value="context.FixedWidthLength" Label="Length" Min="0" ShrinkLabel Disabled="@(RealtimeImportDefinition.FileFormat != ActiveVolumeImportFileFormat.FixedWidthText)" />
-                                    </MudItem>
-                                </MudGrid>
-                            </MudTd>
+                            @if (ShowImportSourceColumn)
+                            {
+                                <MudTd DataLabel="Source">
+                                    @if (RealtimeImportDefinition.FileFormat == ActiveVolumeImportFileFormat.Parquet)
+                                    {
+                                        <MudTextField @bind-Value="context.FieldName" Label="Field" ShrinkLabel />
+                                    }
+                                    else
+                                    {
+                                        <MudNumericField T="int" @bind-Value="context.ColumnIndex" Label="Column" Min="0" ShrinkLabel />
+                                    }
+                                </MudTd>
+                            }
+                            @if (ShowFixedWidthColumn)
+                            {
+                                <MudTd DataLabel="Fixed width">
+                                    <MudGrid>
+                                        <MudItem xs="6">
+                                            <MudNumericField T="int" @bind-Value="context.FixedWidthStartIndex" Label="Start" Min="0" ShrinkLabel />
+                                        </MudItem>
+                                        <MudItem xs="6">
+                                            <MudNumericField T="int" @bind-Value="context.FixedWidthLength" Label="Length" Min="0" ShrinkLabel />
+                                        </MudItem>
+                                    </MudGrid>
+                                </MudTd>
+                            }
                             <MudTd DataLabel="Quantity">
                                 <MudTextField Value="@context.PhysicalQuantity" ReadOnly="true" ShrinkLabel />
                             </MudTd>
@@ -306,9 +330,6 @@ else
                                         <MudSelectItem T="string" Value="@referenceName">@referenceName</MudSelectItem>
                                     }
                                 </MudSelect>
-                            </MudTd>
-                            <MudTd>
-                                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => RemoveImportColumnMapping(context))" />
                             </MudTd>
                         </RowTemplate>
                         <NoRecordsContent>
@@ -380,6 +401,7 @@ else
     private ActiveVolumeCase? currentCase_;
     private CalibrationRecord? selectedCalibration_;
     private MudUnitAndReferenceChoiceTag? unitReferenceTag_;
+    private HashSet<DelimitedColumnMapping> selectedImportColumns_ = new();
     private List<FieldLight> fieldList_ = new();
     private List<ClusterLight> clusterList_ = new();
     private List<Well> wellList_ = new();
@@ -387,6 +409,7 @@ else
     private List<WellBoreArchitecture> wellBoreArchitectureList_ = new();
     private List<DrillStringLight> drillStringList_ = new();
     private List<Rig> rigList_ = new();
+    private IBrowserFile? selectedRealtimeImportFile_;
     private bool isEditing_;
     private bool isLoadingCase_;
     private bool isLoadingCalibration_;
@@ -402,7 +425,14 @@ else
     private string DerivedMudSystem => GetDerivedMudSystem();
     private string DerivedHoleSection => GetDerivedHoleSection();
     private DelimitedImportDefinition RealtimeImportDefinition => EnsureRealtimeImportDefinition();
-    private List<DelimitedColumnMapping> ImportColumns => RealtimeImportDefinition.Columns?.ToList() ?? new List<DelimitedColumnMapping>();
+    private List<DelimitedColumnMapping> ImportColumns => RealtimeImportDefinition.Columns?
+        .Where(mapping => IsSignalVisibleForSelectedImportFormat(mapping.SignalKind))
+        .Where(mapping => IsSignalCompatibleWithReturnFlowMode(mapping.SignalKind, currentCase_?.ReturnFlowMeasurementMode ?? ReturnFlowMeasurementMode.FlowPaddle))
+        .ToList() ?? new List<DelimitedColumnMapping>();
+    private bool ShowImportSourceColumn => RealtimeImportDefinition.FileFormat != ActiveVolumeImportFileFormat.FixedWidthText;
+    private bool ShowFixedWidthColumn => RealtimeImportDefinition.FileFormat == ActiveVolumeImportFileFormat.FixedWidthText;
+    private bool ShowTimestampImportControls => RealtimeImportDefinition.FileFormat != ActiveVolumeImportFileFormat.Parquet;
+    private bool CanImportRealtimeData => currentCase_ is not null && selectedRealtimeImportFile_ is not null && !isBusy_;
 
     private static IReadOnlyList<DelimitedFileSeparator> DelimitedSeparators { get; } =
         new[] { DelimitedFileSeparator.Comma, DelimitedFileSeparator.Semicolon, DelimitedFileSeparator.Tab, DelimitedFileSeparator.Whitespace, DelimitedFileSeparator.Custom };
@@ -413,8 +443,28 @@ else
     private static IReadOnlyList<string> TimeZoneIds { get; } =
         TimeZoneInfo.GetSystemTimeZones().Select(timeZone => timeZone.Id).ToList();
 
-    private static IReadOnlyList<ActiveVolumeSignalKind> ImportableSignalKinds { get; } =
-        Enum.GetValues<ActiveVolumeSignalKind>().ToList();
+    private static IReadOnlyList<ReturnFlowMeasurementMode> ReturnFlowMeasurementModes { get; } =
+        new[] { ReturnFlowMeasurementMode.FlowPaddle, ReturnFlowMeasurementMode.CoriolisFlowmeter };
+
+    private static IReadOnlyList<ActiveVolumeSignalKind> BaseImportableSignalKinds { get; } =
+        new[]
+        {
+            ActiveVolumeSignalKind.Ignore,
+            ActiveVolumeSignalKind.Timestamp,
+            ActiveVolumeSignalKind.RelativeSeconds,
+            ActiveVolumeSignalKind.ActiveVolume,
+            ActiveVolumeSignalKind.FlowrateIn,
+            ActiveVolumeSignalKind.ReturnMudDensity,
+            ActiveVolumeSignalKind.CuttingsRecoveryRate,
+            ActiveVolumeSignalKind.CuttingsP50Size,
+            ActiveVolumeSignalKind.StandPipePressure,
+            ActiveVolumeSignalKind.InletMudTemperature,
+            ActiveVolumeSignalKind.OutletMudTemperature,
+            ActiveVolumeSignalKind.BottomOfStringDepth,
+            ActiveVolumeSignalKind.BottomHoleDepth,
+            ActiveVolumeSignalKind.AxialPipeVelocity,
+            ActiveVolumeSignalKind.ShakerLoadEstimate
+        };
 
     private List<FieldLight> AvailableFields =>
         fieldList_.Where(item => item?.MetaInfo != null).OrderBy(item => item.Name).ToList();
@@ -499,11 +549,12 @@ else
         {
             Id = Guid.Empty,
             Name = "New active volume case",
+            ReturnFlowMeasurementMode = ReturnFlowMeasurementMode.FlowPaddle,
             CreationDate = now,
             LastModificationDate = now,
             ProcessingState = ActiveVolumeCaseProcessingState.Created,
             Tags = new Dictionary<string, string>(),
-            RealtimeImportDefinition = CreateDefaultImportDefinition(),
+            RealtimeImportDefinition = CreateDefaultImportDefinition(ReturnFlowMeasurementMode.FlowPaddle),
             Chunks = new List<ActiveVolumeCaseChunk>()
         };
         selectedCaseLight_ = ToLight(currentCase_);
@@ -553,7 +604,7 @@ else
         currentCase_.LastModificationDate = DateTimeOffset.UtcNow;
         bool saved = await Api.SaveCaseAsync(currentCase_);
         isBusy_ = false;
-        Snackbar.Add(saved ? "Active volume case saved." : "Could not save active volume case.", saved ? Severity.Success : Severity.Error);
+        Snackbar.Add(saved ? "Active volume case saved." : $"Could not save active volume case. {Api.LastErrorMessage}", saved ? Severity.Success : Severity.Error);
         await ReloadCasesAsync();
     }
 
@@ -754,10 +805,15 @@ else
     {
         if (currentCase_ is null)
         {
-            return CreateDefaultImportDefinition();
+            return CreateDefaultImportDefinition(ReturnFlowMeasurementMode.FlowPaddle);
         }
 
-        currentCase_.RealtimeImportDefinition ??= CreateDefaultImportDefinition();
+        currentCase_.RealtimeImportDefinition ??= CreateDefaultImportDefinition(currentCase_.ReturnFlowMeasurementMode);
+        if (!ReturnFlowMeasurementModes.Contains(currentCase_.ReturnFlowMeasurementMode))
+        {
+            currentCase_.ReturnFlowMeasurementMode = ReturnFlowMeasurementMode.FlowPaddle;
+        }
+
         currentCase_.RealtimeImportDefinition.Columns ??= new List<DelimitedColumnMapping>();
         foreach (DelimitedColumnMapping mapping in currentCase_.RealtimeImportDefinition.Columns)
         {
@@ -767,7 +823,7 @@ else
         return currentCase_.RealtimeImportDefinition;
     }
 
-    private static DelimitedImportDefinition CreateDefaultImportDefinition()
+    private static DelimitedImportDefinition CreateDefaultImportDefinition(ReturnFlowMeasurementMode returnFlowMeasurementMode)
     {
         return new DelimitedImportDefinition
         {
@@ -778,26 +834,38 @@ else
             TimestampFormat = "O",
             TimestampStorageKind = TimestampStorageKind.Utc,
             LocalTimeZoneId = TimeZoneInfo.Local.Id,
-            Columns = CreateDefaultImportMappings()
+            Columns = CreateDefaultImportMappings(returnFlowMeasurementMode)
         };
     }
 
-    private static List<DelimitedColumnMapping> CreateDefaultImportMappings()
+    private static List<DelimitedColumnMapping> CreateDefaultImportMappings(ReturnFlowMeasurementMode returnFlowMeasurementMode)
     {
-        ActiveVolumeSignalKind[] defaultSignals =
+        List<ActiveVolumeSignalKind> defaultSignals = new()
         {
             ActiveVolumeSignalKind.Timestamp,
             ActiveVolumeSignalKind.ActiveVolume,
             ActiveVolumeSignalKind.FlowrateIn,
-            ActiveVolumeSignalKind.FlowPaddlePosition,
-            ActiveVolumeSignalKind.CoriolisVolumetricFlowrate,
-            ActiveVolumeSignalKind.CoriolisMassFlowrate,
             ActiveVolumeSignalKind.ReturnMudDensity,
             ActiveVolumeSignalKind.CuttingsRecoveryRate,
+            ActiveVolumeSignalKind.CuttingsP50Size,
             ActiveVolumeSignalKind.StandPipePressure,
             ActiveVolumeSignalKind.BottomOfStringDepth,
-            ActiveVolumeSignalKind.BottomHoleDepth
+            ActiveVolumeSignalKind.BottomHoleDepth,
+            ActiveVolumeSignalKind.InletMudTemperature,
+            ActiveVolumeSignalKind.OutletMudTemperature
         };
+
+        if (returnFlowMeasurementMode == ReturnFlowMeasurementMode.CoriolisFlowmeter)
+        {
+            defaultSignals.InsertRange(3, new[]
+            {
+                ActiveVolumeSignalKind.CoriolisVolumetricFlowrate
+            });
+        }
+        else
+        {
+            defaultSignals.Insert(3, ActiveVolumeSignalKind.FlowPaddlePosition);
+        }
 
         return defaultSignals
             .Select((signal, index) =>
@@ -813,6 +881,91 @@ else
             .ToList();
     }
 
+    private void OnReturnFlowMeasurementModeChanged(ReturnFlowMeasurementMode mode)
+    {
+        if (currentCase_ is null)
+        {
+            return;
+        }
+
+        currentCase_.ReturnFlowMeasurementMode = mode;
+        ReplaceReturnFlowImportMappings();
+    }
+
+    private IReadOnlyList<ActiveVolumeSignalKind> GetImportableSignalKinds()
+    {
+        ReturnFlowMeasurementMode mode = currentCase_?.ReturnFlowMeasurementMode ?? ReturnFlowMeasurementMode.FlowPaddle;
+        List<ActiveVolumeSignalKind> signalKinds = BaseImportableSignalKinds.ToList();
+        if (RealtimeImportDefinition.FileFormat == ActiveVolumeImportFileFormat.Parquet)
+        {
+            signalKinds.Remove(ActiveVolumeSignalKind.Timestamp);
+        }
+
+        if (mode == ReturnFlowMeasurementMode.CoriolisFlowmeter)
+        {
+            signalKinds.Add(ActiveVolumeSignalKind.CoriolisVolumetricFlowrate);
+        }
+        else
+        {
+            signalKinds.Add(ActiveVolumeSignalKind.FlowPaddlePosition);
+        }
+
+        return signalKinds;
+    }
+
+    private void ReplaceReturnFlowImportMappings()
+    {
+        DelimitedImportDefinition definition = RealtimeImportDefinition;
+        definition.Columns ??= new List<DelimitedColumnMapping>();
+        List<DelimitedColumnMapping> mappingsToRemove = definition.Columns
+            .Where(mapping => IsReturnFlowModeSpecificSignal(mapping.SignalKind))
+            .ToList();
+        foreach (DelimitedColumnMapping mapping in mappingsToRemove)
+        {
+            definition.Columns.Remove(mapping);
+        }
+
+        foreach (ActiveVolumeSignalKind signalKind in GetReturnFlowSignals(currentCase_?.ReturnFlowMeasurementMode ?? ReturnFlowMeasurementMode.FlowPaddle))
+        {
+            if (definition.Columns.Any(mapping => mapping.SignalKind == signalKind))
+            {
+                continue;
+            }
+
+            DelimitedColumnMapping mapping = new()
+            {
+                ColumnIndex = definition.Columns.Count,
+                FieldName = signalKind.ToString()
+            };
+            OnImportSignalKindChanged(mapping, signalKind);
+            definition.Columns.Add(mapping);
+        }
+    }
+
+    private static IReadOnlyList<ActiveVolumeSignalKind> GetReturnFlowSignals(ReturnFlowMeasurementMode mode) =>
+        mode == ReturnFlowMeasurementMode.CoriolisFlowmeter
+            ? new[] { ActiveVolumeSignalKind.CoriolisVolumetricFlowrate, ActiveVolumeSignalKind.ReturnMudDensity }
+            : new[] { ActiveVolumeSignalKind.FlowPaddlePosition };
+
+    private static bool IsReturnFlowModeSpecificSignal(ActiveVolumeSignalKind signalKind) =>
+        signalKind is ActiveVolumeSignalKind.FlowPaddlePosition
+            or ActiveVolumeSignalKind.CoriolisVolumetricFlowrate
+            or ActiveVolumeSignalKind.CoriolisMassFlowrate;
+
+    private static bool IsSignalCompatibleWithReturnFlowMode(ActiveVolumeSignalKind signalKind, ReturnFlowMeasurementMode mode) => signalKind switch
+    {
+        ActiveVolumeSignalKind.FlowPaddlePosition => mode == ReturnFlowMeasurementMode.FlowPaddle,
+        ActiveVolumeSignalKind.CoriolisVolumetricFlowrate => mode == ReturnFlowMeasurementMode.CoriolisFlowmeter,
+        ActiveVolumeSignalKind.CoriolisMassFlowrate => false,
+        _ => true
+    };
+
+    private bool IsSignalVisibleForSelectedImportFormat(ActiveVolumeSignalKind signalKind)
+    {
+        return RealtimeImportDefinition.FileFormat != ActiveVolumeImportFileFormat.Parquet ||
+            signalKind != ActiveVolumeSignalKind.Timestamp;
+    }
+
     private void OnImportFileFormatChanged(ActiveVolumeImportFileFormat fileFormat)
     {
         RealtimeImportDefinition.FileFormat = fileFormat;
@@ -824,6 +977,17 @@ else
         {
             RealtimeImportDefinition.Separator = DelimitedFileSeparator.Comma;
         }
+
+        if (fileFormat == ActiveVolumeImportFileFormat.Parquet)
+        {
+            ApplyParquetFieldNames();
+        }
+    }
+
+    private void OnRealtimeImportFileSelected(InputFileChangeEventArgs args)
+    {
+        selectedRealtimeImportFile_ = args.File;
+        RealtimeImportDefinition.FileName = args.File.Name;
     }
 
     private void AddImportColumnMapping()
@@ -839,9 +1003,542 @@ else
         definition.Columns.Add(mapping);
     }
 
-    private void RemoveImportColumnMapping(DelimitedColumnMapping mapping)
+    private void DeleteSelectedImportColumnMappings()
     {
-        RealtimeImportDefinition.Columns?.Remove(mapping);
+        if (!selectedImportColumns_.Any())
+        {
+            return;
+        }
+
+        DelimitedImportDefinition definition = RealtimeImportDefinition;
+        foreach (DelimitedColumnMapping mapping in selectedImportColumns_.ToList())
+        {
+            definition.Columns?.Remove(mapping);
+        }
+
+        selectedImportColumns_.Clear();
+    }
+
+    private async Task ImportRealtimeDataAsync()
+    {
+        if (currentCase_ is null || selectedRealtimeImportFile_ is null)
+        {
+            return;
+        }
+
+        isBusy_ = true;
+        try
+        {
+            EnsureRealtimeImportDefinition();
+            if (currentCase_.Id == Guid.Empty && !await Api.SaveCaseAsync(currentCase_))
+            {
+                Snackbar.Add($"Could not save the case before importing data. {Api.LastErrorMessage}", Severity.Error);
+                return;
+            }
+
+            List<ActiveVolumeSample> samples = RealtimeImportDefinition.FileFormat == ActiveVolumeImportFileFormat.Parquet
+                ? await ReadParquetImportSamplesAsync(selectedRealtimeImportFile_, RealtimeImportDefinition)
+                : await ReadRealtimeImportSamplesAsync(selectedRealtimeImportFile_, RealtimeImportDefinition);
+            if (samples.Count == 0)
+            {
+                Snackbar.Add("No realtime samples were found in the selected file.", Severity.Warning);
+                return;
+            }
+
+            const int chunkSize = 10000;
+            int uploadedChunks = 0;
+            for (int offset = 0; offset < samples.Count; offset += chunkSize)
+            {
+                List<ActiveVolumeSample> chunkSamples = samples.Skip(offset).Take(chunkSize).ToList();
+                ActiveVolumeCaseChunk chunk = new()
+                {
+                    CaseID = currentCase_.Id,
+                    ChunkIndex = offset / chunkSize,
+                    StartTimeUtc = chunkSamples.First().TimestampUtc,
+                    EndTimeUtc = chunkSamples.Last().TimestampUtc,
+                    Samples = chunkSamples,
+                    Checksum = ComputeChunkChecksum(chunkSamples)
+                };
+
+                if (!await Api.SaveCaseChunkAsync(currentCase_.Id, chunk.ChunkIndex, chunk))
+                {
+                    Snackbar.Add($"Could not upload chunk {chunk.ChunkIndex}.", Severity.Error);
+                    return;
+                }
+
+                uploadedChunks++;
+            }
+
+            currentCase_ = await Api.GetCaseAsync(currentCase_.Id, includeChunks: false) ?? currentCase_;
+            selectedCaseLight_ = ToLight(currentCase_);
+            Snackbar.Add($"Imported {samples.Count} samples in {uploadedChunks} chunk(s).", Severity.Success);
+            await ReloadCasesAsync();
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add($"Could not import realtime data: {exception.Message}", Severity.Error);
+        }
+        finally
+        {
+            isBusy_ = false;
+        }
+    }
+
+    private async Task<List<ActiveVolumeSample>> ReadParquetImportSamplesAsync(IBrowserFile file, DelimitedImportDefinition definition)
+    {
+        using Stream browserStream = file.OpenReadStream(maxAllowedSize: 1024L * 1024L * 1024L);
+        await using MemoryStream memoryStream = new();
+        await browserStream.CopyToAsync(memoryStream);
+        memoryStream.Position = 0;
+
+        await using ParquetReader reader = await ParquetReader.CreateAsync(memoryStream);
+        DataField[] dataFields = reader.Schema.GetDataFields();
+        DataField timestampField = ResolveParquetTimestampField(dataFields);
+        List<DelimitedColumnMapping> mappings = ImportColumns
+            .Where(mapping => mapping.SignalKind is not ActiveVolumeSignalKind.Ignore and not ActiveVolumeSignalKind.Timestamp and not ActiveVolumeSignalKind.RelativeSeconds)
+            .ToList();
+        List<ActiveVolumeSample> samples = new();
+
+        for (int rowGroupIndex = 0; rowGroupIndex < reader.RowGroupCount; rowGroupIndex++)
+        {
+            using ParquetRowGroupReader rowGroupReader = reader.OpenRowGroupReader(rowGroupIndex);
+            int rowCount = checked((int)rowGroupReader.RowCount);
+            object?[] timestampValues = await ReadParquetColumnValuesAsync(rowGroupReader, timestampField, rowCount);
+            Dictionary<DelimitedColumnMapping, object?[]> columnValues = new();
+
+            foreach (DelimitedColumnMapping mapping in mappings)
+            {
+                DataField field = ResolveParquetDataField(dataFields, mapping.FieldName);
+                columnValues[mapping] = await ReadParquetColumnValuesAsync(rowGroupReader, field, rowCount);
+            }
+
+            for (int rowIndex = 0; rowIndex < rowCount; rowIndex++)
+            {
+                DateTimeOffset? timestampUtc = ConvertParquetTimestampToUtc(timestampValues[rowIndex]);
+                if (!timestampUtc.HasValue)
+                {
+                    continue;
+                }
+
+                ActiveVolumeSample sample = new()
+                {
+                    TimestampUtc = timestampUtc.Value,
+                    AdditionalSignals = new Dictionary<string, double>(),
+                    QualityFlags = new Dictionary<string, string>(),
+                    CuttingsParticleSizeDistribution = new List<double>()
+                };
+
+                foreach ((DelimitedColumnMapping mapping, object?[] values) in columnValues)
+                {
+                    double? value = ConvertParquetValueToDouble(values[rowIndex]);
+                    if (value.HasValue)
+                    {
+                        AssignSampleValue(sample, mapping.SignalKind, ConvertToSI(value.Value, mapping));
+                    }
+                }
+
+                samples.Add(sample);
+            }
+        }
+
+        return samples.OrderBy(sample => sample.TimestampUtc).ToList();
+    }
+
+    private static DataField ResolveParquetTimestampField(DataField[] dataFields)
+    {
+        string[] timestampFieldNames =
+        {
+            "TIME",
+            "TIMESTAMP",
+            "Timestamp",
+            "timestamp",
+            "TimestampUtc",
+            "timestampUtc",
+            "DATETIME",
+            "DateTime",
+            "DATE_TIME",
+            "date_time",
+            "TIME_STAMP"
+        };
+
+        foreach (string fieldName in timestampFieldNames)
+        {
+            DataField? field = dataFields.FirstOrDefault(item => string.Equals(item.Name, fieldName, StringComparison.OrdinalIgnoreCase));
+            if (field is not null)
+            {
+                return field;
+            }
+        }
+
+        DataField? dateTimeField = dataFields.FirstOrDefault(item =>
+            item.ClrType == typeof(DateTime) ||
+            item.ClrType == typeof(DateTime?) ||
+            item.ClrType == typeof(DateTimeOffset) ||
+            item.ClrType == typeof(DateTimeOffset?));
+
+        return dateTimeField ?? throw new InvalidOperationException("No timestamp column was found in the Parquet file.");
+    }
+
+    private static DataField ResolveParquetDataField(DataField[] dataFields, string fieldName)
+    {
+        DataField? field = dataFields.FirstOrDefault(item => string.Equals(item.Name, fieldName, StringComparison.OrdinalIgnoreCase));
+        return field ?? throw new InvalidOperationException($"Column '{fieldName}' was not found in the Parquet file.");
+    }
+
+    private static async Task<object?[]> ReadParquetColumnValuesAsync(ParquetRowGroupReader rowGroupReader, DataField field, int rowCount)
+    {
+        Type clrType = Nullable.GetUnderlyingType(field.ClrType) ?? field.ClrType;
+        if (clrType == typeof(double))
+        {
+            return await ReadParquetStructColumnValuesAsync<double>(rowGroupReader, field, rowCount);
+        }
+        if (clrType == typeof(float))
+        {
+            return await ReadParquetStructColumnValuesAsync<float>(rowGroupReader, field, rowCount);
+        }
+        if (clrType == typeof(int))
+        {
+            return await ReadParquetStructColumnValuesAsync<int>(rowGroupReader, field, rowCount);
+        }
+        if (clrType == typeof(long))
+        {
+            return await ReadParquetStructColumnValuesAsync<long>(rowGroupReader, field, rowCount);
+        }
+        if (clrType == typeof(short))
+        {
+            return await ReadParquetStructColumnValuesAsync<short>(rowGroupReader, field, rowCount);
+        }
+        if (clrType == typeof(decimal))
+        {
+            return await ReadParquetStructColumnValuesAsync<decimal>(rowGroupReader, field, rowCount);
+        }
+        if (clrType == typeof(DateTime))
+        {
+            return await ReadParquetStructColumnValuesAsync<DateTime>(rowGroupReader, field, rowCount);
+        }
+        if (clrType == typeof(DateTimeOffset))
+        {
+            return await ReadParquetStructColumnValuesAsync<DateTimeOffset>(rowGroupReader, field, rowCount);
+        }
+        if (clrType == typeof(string))
+        {
+            string[] values = new string[rowCount];
+            await rowGroupReader.ReadAsync(field, values);
+            return values.Cast<object?>().ToArray();
+        }
+
+        throw new InvalidOperationException($"Column '{field.Name}' uses unsupported Parquet type '{field.ClrType.Name}'.");
+    }
+
+    private static async Task<object?[]> ReadParquetStructColumnValuesAsync<T>(ParquetRowGroupReader rowGroupReader, DataField field, int rowCount)
+        where T : struct
+    {
+        Type clrType = Nullable.GetUnderlyingType(field.ClrType) ?? field.ClrType;
+        if (field.IsNullable || Nullable.GetUnderlyingType(field.ClrType) is not null)
+        {
+            T?[] values = new T?[rowCount];
+            await rowGroupReader.ReadAsync<T>(field, values);
+            return values.Cast<object?>().ToArray();
+        }
+
+        T[] nonNullableValues = new T[rowCount];
+        await rowGroupReader.ReadAsync<T>(field, nonNullableValues);
+        return nonNullableValues.Cast<object?>().ToArray();
+    }
+
+    private static DateTimeOffset? ConvertParquetTimestampToUtc(object? value)
+    {
+        return value switch
+        {
+            null => null,
+            DateTimeOffset dateTimeOffset => dateTimeOffset.ToUniversalTime(),
+            DateTime dateTime => dateTime.Kind == DateTimeKind.Unspecified
+                ? new DateTimeOffset(DateTime.SpecifyKind(dateTime, DateTimeKind.Utc))
+                : new DateTimeOffset(dateTime.ToUniversalTime()),
+            string text when DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out DateTimeOffset parsed) => parsed,
+            long unixMilliseconds => DateTimeOffset.FromUnixTimeMilliseconds(unixMilliseconds),
+            int unixSeconds => DateTimeOffset.FromUnixTimeSeconds(unixSeconds),
+            double unixSeconds => DateTimeOffset.FromUnixTimeMilliseconds(checked((long)(unixSeconds * 1000.0))),
+            float unixSeconds => DateTimeOffset.FromUnixTimeMilliseconds(checked((long)(unixSeconds * 1000.0f))),
+            _ => null
+        };
+    }
+
+    private static double? ConvertParquetValueToDouble(object? value)
+    {
+        return value switch
+        {
+            null => null,
+            double doubleValue => doubleValue,
+            float floatValue => floatValue,
+            decimal decimalValue => (double)decimalValue,
+            int intValue => intValue,
+            long longValue => longValue,
+            short shortValue => shortValue,
+            string text when double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed) => parsed,
+            _ => null
+        };
+    }
+
+    private async Task<List<ActiveVolumeSample>> ReadRealtimeImportSamplesAsync(IBrowserFile file, DelimitedImportDefinition definition)
+    {
+        using Stream stream = file.OpenReadStream(maxAllowedSize: 1024L * 1024L * 1024L);
+        using StreamReader reader = new(stream);
+        string content = await reader.ReadToEndAsync();
+        string[] lines = content.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        int startIndex = definition.HasHeader ? 1 : 0;
+        DateTimeOffset? relativeOriginUtc = definition.RelativeTimeOriginUtc;
+        List<ActiveVolumeSample> samples = new();
+
+        for (int i = startIndex; i < lines.Length; i++)
+        {
+            string line = lines[i];
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                continue;
+            }
+
+            ActiveVolumeSample? sample = ParseRealtimeImportSample(line, definition, relativeOriginUtc);
+            if (sample is not null)
+            {
+                samples.Add(sample);
+            }
+        }
+
+        return samples.OrderBy(sample => sample.TimestampUtc).ToList();
+    }
+
+    private ActiveVolumeSample? ParseRealtimeImportSample(string line, DelimitedImportDefinition definition, DateTimeOffset? relativeOriginUtc)
+    {
+        List<DelimitedColumnMapping> mappings = ImportColumns
+            .Where(mapping => mapping.SignalKind is not ActiveVolumeSignalKind.Ignore)
+            .ToList();
+        Dictionary<ActiveVolumeSignalKind, string> rawValues = new();
+        string[]? columns = definition.FileFormat == ActiveVolumeImportFileFormat.FixedWidthText ? null : SplitDelimitedLine(line, definition);
+
+        foreach (DelimitedColumnMapping mapping in mappings)
+        {
+            string? rawValue = definition.FileFormat == ActiveVolumeImportFileFormat.FixedWidthText
+                ? ExtractFixedWidthValue(line, mapping)
+                : ExtractDelimitedValue(columns, mapping.ColumnIndex);
+
+            if (!string.IsNullOrWhiteSpace(rawValue))
+            {
+                rawValues[mapping.SignalKind] = rawValue.Trim();
+            }
+        }
+
+        DateTimeOffset? timestampUtc = ResolveImportTimestamp(rawValues, mappings, definition, relativeOriginUtc);
+        if (!timestampUtc.HasValue)
+        {
+            return null;
+        }
+
+        ActiveVolumeSample sample = new()
+        {
+            TimestampUtc = timestampUtc.Value,
+            AdditionalSignals = new Dictionary<string, double>(),
+            QualityFlags = new Dictionary<string, string>(),
+            CuttingsParticleSizeDistribution = new List<double>()
+        };
+
+        foreach (DelimitedColumnMapping mapping in mappings)
+        {
+            if (mapping.SignalKind is ActiveVolumeSignalKind.Timestamp or ActiveVolumeSignalKind.RelativeSeconds)
+            {
+                continue;
+            }
+
+            if (!rawValues.TryGetValue(mapping.SignalKind, out string? rawValue) ||
+                !double.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
+            {
+                continue;
+            }
+
+            AssignSampleValue(sample, mapping.SignalKind, ConvertToSI(value, mapping));
+        }
+
+        return sample;
+    }
+
+    private static string[] SplitDelimitedLine(string line, DelimitedImportDefinition definition)
+    {
+        return definition.Separator switch
+        {
+            DelimitedFileSeparator.Semicolon => line.Split(';'),
+            DelimitedFileSeparator.Tab => line.Split('\t'),
+            DelimitedFileSeparator.Whitespace => line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries),
+            DelimitedFileSeparator.Custom when !string.IsNullOrEmpty(definition.CustomSeparator) => line.Split(definition.CustomSeparator),
+            _ => line.Split(',')
+        };
+    }
+
+    private static string? ExtractDelimitedValue(string[]? columns, int columnIndex)
+    {
+        return columns is not null && columnIndex >= 0 && columnIndex < columns.Length ? columns[columnIndex] : null;
+    }
+
+    private static string? ExtractFixedWidthValue(string line, DelimitedColumnMapping mapping)
+    {
+        if (mapping.FixedWidthStartIndex < 0 || mapping.FixedWidthStartIndex >= line.Length || mapping.FixedWidthLength <= 0)
+        {
+            return null;
+        }
+
+        int length = Math.Min(mapping.FixedWidthLength, line.Length - mapping.FixedWidthStartIndex);
+        return line.Substring(mapping.FixedWidthStartIndex, length);
+    }
+
+    private DateTimeOffset? ResolveImportTimestamp(
+        Dictionary<ActiveVolumeSignalKind, string> rawValues,
+        List<DelimitedColumnMapping> mappings,
+        DelimitedImportDefinition definition,
+        DateTimeOffset? relativeOriginUtc)
+    {
+        if (rawValues.TryGetValue(ActiveVolumeSignalKind.Timestamp, out string? timestampText))
+        {
+            DateTimeStyles styles = definition.TimestampStorageKind == TimestampStorageKind.Utc
+                ? DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal
+                : DateTimeStyles.AssumeLocal;
+            if (DateTimeOffset.TryParseExact(timestampText, definition.TimestampFormat, CultureInfo.InvariantCulture, styles, out DateTimeOffset exactTimestamp) ||
+                DateTimeOffset.TryParse(timestampText, CultureInfo.InvariantCulture, styles, out exactTimestamp))
+            {
+                return definition.TimestampStorageKind == TimestampStorageKind.Utc
+                    ? exactTimestamp.ToUniversalTime()
+                    : ConvertLocalImportTimeToUtc(exactTimestamp.DateTime, definition.LocalTimeZoneId);
+            }
+        }
+
+        if (rawValues.TryGetValue(ActiveVolumeSignalKind.RelativeSeconds, out string? relativeText) &&
+            double.TryParse(relativeText, NumberStyles.Float, CultureInfo.InvariantCulture, out double relativeSeconds))
+        {
+            DateTimeOffset origin = relativeOriginUtc ?? DateTimeOffset.UtcNow;
+            return origin.AddSeconds(relativeSeconds).ToUniversalTime();
+        }
+
+        return null;
+    }
+
+    private static DateTimeOffset ConvertLocalImportTimeToUtc(DateTime localTime, string timeZoneId)
+    {
+        if (string.IsNullOrWhiteSpace(timeZoneId))
+        {
+            return new DateTimeOffset(localTime).ToUniversalTime();
+        }
+
+        TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+        DateTime unspecifiedLocalTime = DateTime.SpecifyKind(localTime, DateTimeKind.Unspecified);
+        return new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(unspecifiedLocalTime, timeZone), TimeSpan.Zero);
+    }
+
+    private double ConvertToSI(double value, DelimitedColumnMapping mapping)
+    {
+        string unit = mapping.Unit?.Trim() ?? string.Empty;
+        return unit switch
+        {
+            "" or "SI" or "1" => value,
+            "%" => value / 100.0,
+            "ppm" => value / 1000000.0,
+            "min" => value * 60.0,
+            "h" => value * 3600.0,
+            "L" => value / 1000.0,
+            "bbl" => value * 0.158987294928,
+            "L/min" => value / 60000.0,
+            "m3/min" => value / 60.0,
+            "gpm" => value * 0.0000630901964,
+            "bbl/min" => value * 0.158987294928 / 60.0,
+            "kg/min" => value / 60.0,
+            "lb/min" => value * 0.45359237 / 60.0,
+            "sg" => value * 1000.0,
+            "g/cm3" => value * 1000.0,
+            "ppg" => value * 119.826427316,
+            "bar" => value * 100000.0,
+            "psi" => value * 6894.757293168,
+            "MPa" => value * 1000000.0,
+            "degC" => value + 273.15,
+            "degF" => (value - 32.0) * 5.0 / 9.0 + 273.15,
+            "ft" => value * 0.3048,
+            "in" => value * 0.0254,
+            "mm" => value / 1000.0,
+            "ft/s" => value * 0.3048,
+            "m/min" => value / 60.0,
+            "ft/min" => value * 0.3048 / 60.0,
+            _ => value
+        };
+    }
+
+    private static void AssignSampleValue(ActiveVolumeSample sample, ActiveVolumeSignalKind signalKind, double value)
+    {
+        switch (signalKind)
+        {
+            case ActiveVolumeSignalKind.ActiveVolume:
+                sample.ActiveVolume = value;
+                break;
+            case ActiveVolumeSignalKind.FlowrateIn:
+                sample.FlowrateIn = value;
+                break;
+            case ActiveVolumeSignalKind.FlowPaddlePosition:
+                sample.FlowPaddlePosition = value;
+                break;
+            case ActiveVolumeSignalKind.CoriolisVolumetricFlowrate:
+                sample.CoriolisVolumetricFlowrate = value;
+                break;
+            case ActiveVolumeSignalKind.ReturnMudDensity:
+                sample.ReturnMudDensity = value;
+                break;
+            case ActiveVolumeSignalKind.CuttingsRecoveryRate:
+                sample.CuttingsRecoveryRate = value;
+                break;
+            case ActiveVolumeSignalKind.StandPipePressure:
+                sample.StandPipePressure = value;
+                break;
+            case ActiveVolumeSignalKind.InletMudTemperature:
+                sample.InletMudTemperature = value;
+                break;
+            case ActiveVolumeSignalKind.OutletMudTemperature:
+                sample.OutletMudTemperature = value;
+                break;
+            case ActiveVolumeSignalKind.BottomOfStringDepth:
+                sample.BottomOfStringDepth = value;
+                break;
+            case ActiveVolumeSignalKind.BottomHoleDepth:
+                sample.BottomHoleDepth = value;
+                break;
+            case ActiveVolumeSignalKind.AxialPipeVelocity:
+                sample.AxialPipeVelocity = value;
+                break;
+            case ActiveVolumeSignalKind.CuttingsP50Size:
+                sample.AdditionalSignals["CuttingsP50Size"] = value;
+                break;
+            case ActiveVolumeSignalKind.ShakerLoadEstimate:
+                sample.AdditionalSignals["ShakerLoadEstimate"] = value;
+                break;
+        }
+    }
+
+    private static string ComputeChunkChecksum(List<ActiveVolumeSample> samples)
+    {
+        string content = string.Join('\n', samples.Select(sample => $"{sample.TimestampUtc:O}|{sample.ActiveVolume}|{sample.FlowrateIn}|{sample.FlowPaddlePosition}|{sample.CoriolisVolumetricFlowrate}|{sample.ReturnMudDensity}"));
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(content)));
+    }
+
+    private void ApplyParquetFieldNames()
+    {
+        foreach (DelimitedColumnMapping mapping in RealtimeImportDefinition.Columns ?? new List<DelimitedColumnMapping>())
+        {
+            string parquetFieldName = GetDefaultParquetFieldName(mapping.SignalKind);
+            if (string.IsNullOrWhiteSpace(parquetFieldName))
+            {
+                continue;
+            }
+
+            string genericFieldName = mapping.SignalKind.ToString();
+            if (string.IsNullOrWhiteSpace(mapping.FieldName) ||
+                string.Equals(mapping.FieldName, genericFieldName, StringComparison.Ordinal))
+            {
+                mapping.FieldName = parquetFieldName;
+            }
+        }
     }
 
     private static void OnImportSignalKindChanged(DelimitedColumnMapping mapping, ActiveVolumeSignalKind signalKind)
@@ -853,6 +1550,13 @@ else
     private static void ApplySignalDefaults(DelimitedColumnMapping mapping, bool overwriteUnit)
     {
         mapping.PhysicalQuantity = GetPhysicalQuantity(mapping.SignalKind);
+        if (string.IsNullOrWhiteSpace(mapping.FieldName) ||
+            string.Equals(mapping.FieldName, "Signal", StringComparison.Ordinal) ||
+            Enum.TryParse(mapping.FieldName, out ActiveVolumeSignalKind _))
+        {
+            mapping.FieldName = GetDefaultParquetFieldName(mapping.SignalKind);
+        }
+
         mapping.ReferenceSystem = SignalUsesDepthReference(mapping.SignalKind) ? "WGS84" : string.Empty;
         if (SignalUsesDepthReference(mapping.SignalKind) && string.IsNullOrWhiteSpace(mapping.DepthReferenceName))
         {
@@ -868,6 +1572,23 @@ else
             mapping.Unit = GetDefaultUnit(mapping.SignalKind);
         }
     }
+
+    private static string GetDefaultParquetFieldName(ActiveVolumeSignalKind signalKind) => signalKind switch
+    {
+        ActiveVolumeSignalKind.ActiveVolume => "PIT_TOT",
+        ActiveVolumeSignalKind.FlowrateIn => "MUD_FLOW_IN",
+        ActiveVolumeSignalKind.FlowPaddlePosition => "MUD_FLOW_OUT",
+        ActiveVolumeSignalKind.CoriolisVolumetricFlowrate => "MUD_FLOW_OUT",
+        ActiveVolumeSignalKind.ReturnMudDensity => "MUD_DENS_OUT",
+        ActiveVolumeSignalKind.CuttingsRecoveryRate => "CRR_ALL",
+        ActiveVolumeSignalKind.CuttingsP50Size => "CSD_P50",
+        ActiveVolumeSignalKind.StandPipePressure => "PUMP_PRESS",
+        ActiveVolumeSignalKind.BottomOfStringDepth => "DEPTH_BIT",
+        ActiveVolumeSignalKind.BottomHoleDepth => "DEPTH_HOLE",
+        ActiveVolumeSignalKind.InletMudTemperature => "TEMP_IN",
+        ActiveVolumeSignalKind.OutletMudTemperature => "TEMP_OUT",
+        _ => signalKind.ToString()
+    };
 
     private static bool SignalUsesDepthReference(ActiveVolumeSignalKind signalKind) =>
         signalKind is ActiveVolumeSignalKind.BottomOfStringDepth or ActiveVolumeSignalKind.BottomHoleDepth;
@@ -885,7 +1606,7 @@ else
         ActiveVolumeSignalKind.CoriolisMassFlowrate => "MassRateDrilling",
         ActiveVolumeSignalKind.ReturnMudDensity => "MassDensityDrilling",
         ActiveVolumeSignalKind.CuttingsRecoveryRate => "VolumetricFlowrateDrilling",
-        ActiveVolumeSignalKind.CuttingsParticleSizeDistribution => "ProportionStandard",
+        ActiveVolumeSignalKind.CuttingsP50Size => "DiameterSmall",
         ActiveVolumeSignalKind.StandPipePressure => "PressureDrilling",
         ActiveVolumeSignalKind.InletMudTemperature => "TemperatureDrilling",
         ActiveVolumeSignalKind.OutletMudTemperature => "TemperatureDrilling",
@@ -912,7 +1633,7 @@ else
         ActiveVolumeSignalKind.BottomHoleDepth => "m",
         ActiveVolumeSignalKind.AxialPipeVelocity => "m/s",
         ActiveVolumeSignalKind.FlowPaddlePosition => "%",
-        ActiveVolumeSignalKind.CuttingsParticleSizeDistribution => "%",
+        ActiveVolumeSignalKind.CuttingsP50Size => "m",
         ActiveVolumeSignalKind.ShakerLoadEstimate => "1",
         _ => string.Empty
     };
@@ -929,6 +1650,7 @@ else
         "TemperatureDrilling" => new[] { "degC", "degF", "K" },
         "DepthDrilling" => new[] { "m", "ft" },
         "AxialVelocityDrilling" => new[] { "m/s", "ft/s", "m/min", "ft/min" },
+        "DiameterSmall" => new[] { "m", "mm", "in" },
         "DimensionLessStandard" => new[] { "1" },
         _ => new[] { string.Empty }
     };
@@ -958,15 +1680,22 @@ else
         _ => timestampStorageKind.ToString()
     };
 
+    private static string FormatReturnFlowMeasurementMode(ReturnFlowMeasurementMode mode) => mode switch
+    {
+        ReturnFlowMeasurementMode.FlowPaddle => "Flow Paddle",
+        ReturnFlowMeasurementMode.CoriolisFlowmeter => "Coriolis Flowmeter",
+        _ => mode.ToString()
+    };
+
     private static string FormatSignalKind(ActiveVolumeSignalKind signalKind) => signalKind switch
     {
         ActiveVolumeSignalKind.FlowrateIn => "Flowrate In",
-        ActiveVolumeSignalKind.FlowPaddlePosition => "Flow Paddle Position",
+        ActiveVolumeSignalKind.FlowPaddlePosition => "Flow Paddle",
         ActiveVolumeSignalKind.CoriolisVolumetricFlowrate => "Coriolis Volumetric Flowrate",
         ActiveVolumeSignalKind.CoriolisMassFlowrate => "Coriolis Mass Flowrate",
         ActiveVolumeSignalKind.ReturnMudDensity => "Return Mud Density",
         ActiveVolumeSignalKind.CuttingsRecoveryRate => "Cuttings Recovery Rate",
-        ActiveVolumeSignalKind.CuttingsParticleSizeDistribution => "Cuttings Particle Size Distribution",
+        ActiveVolumeSignalKind.CuttingsP50Size => "P50 Cuttings Size",
         ActiveVolumeSignalKind.StandPipePressure => "Stand Pipe Pressure",
         ActiveVolumeSignalKind.InletMudTemperature => "Inlet Mud Temperature",
         ActiveVolumeSignalKind.OutletMudTemperature => "Outlet Mud Temperature",

@@ -12048,11 +12048,8 @@ namespace NORCE.Drilling.ActiveVolume.ModelSharedOut
         [System.Runtime.Serialization.EnumMember(Value = @"FlowPaddle")]
         FlowPaddle = 1,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"CoriolisVolumetric")]
-        CoriolisVolumetric = 2,
-
-        [System.Runtime.Serialization.EnumMember(Value = @"CoriolisMass")]
-        CoriolisMass = 3,
+        [System.Runtime.Serialization.EnumMember(Value = @"CoriolisFlowmeter")]
+        CoriolisFlowmeter = 2,
 
     }
 
@@ -12240,8 +12237,8 @@ namespace NORCE.Drilling.ActiveVolume.ModelSharedOut
         [System.Runtime.Serialization.EnumMember(Value = @"AxialPipeVelocity")]
         AxialPipeVelocity = 15,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"CuttingsParticleSizeDistribution")]
-        CuttingsParticleSizeDistribution = 16,
+        [System.Runtime.Serialization.EnumMember(Value = @"CuttingsP50Size")]
+        CuttingsP50Size = 16,
 
         [System.Runtime.Serialization.EnumMember(Value = @"ShakerLoadEstimate")]
         ShakerLoadEstimate = 17,
@@ -12318,6 +12315,9 @@ namespace NORCE.Drilling.ActiveVolume.ModelSharedOut
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class DelimitedImportDefinition
     {
+
+        [System.Text.Json.Serialization.JsonPropertyName("fileName")]
+        public string FileName { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("fileFormat")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]

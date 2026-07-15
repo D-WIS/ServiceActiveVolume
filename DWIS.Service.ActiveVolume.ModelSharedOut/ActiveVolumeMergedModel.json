@@ -4975,8 +4975,7 @@
         "enum": [
           "Unknown",
           "FlowPaddle",
-          "CoriolisVolumetric",
-          "CoriolisMass"
+          "CoriolisFlowmeter"
         ],
         "type": "string"
       },
@@ -5111,7 +5110,7 @@
           "BottomOfStringDepth",
           "BottomHoleDepth",
           "AxialPipeVelocity",
-          "CuttingsParticleSizeDistribution",
+          "CuttingsP50Size",
           "ShakerLoadEstimate"
         ],
         "type": "string"
@@ -5170,6 +5169,10 @@
       "DelimitedImportDefinition": {
         "type": "object",
         "properties": {
+          "fileName": {
+            "type": "string",
+            "nullable": true
+          },
           "fileFormat": {
             "$ref": "#/components/schemas/ActiveVolumeImportFileFormat"
           },

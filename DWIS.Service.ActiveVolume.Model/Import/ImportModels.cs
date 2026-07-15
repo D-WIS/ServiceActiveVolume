@@ -43,7 +43,7 @@ namespace DWIS.Service.ActiveVolume.Model.Import
         BottomOfStringDepth = 13,
         BottomHoleDepth = 14,
         AxialPipeVelocity = 15,
-        CuttingsParticleSizeDistribution = 16,
+        CuttingsP50Size = 16,
         ShakerLoadEstimate = 17
     }
 
@@ -62,6 +62,7 @@ namespace DWIS.Service.ActiveVolume.Model.Import
 
     public sealed class DelimitedImportDefinition
     {
+        public string FileName { get; set; } = string.Empty;
         public ActiveVolumeImportFileFormat FileFormat { get; set; } = ActiveVolumeImportFileFormat.DelimitedText;
         public DelimitedFileSeparator Separator { get; set; } = DelimitedFileSeparator.Comma;
         public string CustomSeparator { get; set; } = ",";

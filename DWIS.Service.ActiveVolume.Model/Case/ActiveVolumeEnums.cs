@@ -4,8 +4,7 @@ namespace DWIS.Service.ActiveVolume.Model.Case
     {
         Unknown = 0,
         FlowPaddle = 1,
-        CoriolisVolumetric = 2,
-        CoriolisMass = 3
+        CoriolisFlowmeter = 2
     }
 
     public enum ActiveVolumeCaseProcessingState
