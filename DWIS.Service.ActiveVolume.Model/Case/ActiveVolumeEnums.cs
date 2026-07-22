@@ -36,6 +36,7 @@ namespace DWIS.Service.ActiveVolume.Model.Case
         ThermalExpansion = 3,
         SurfaceRetention = 4,
         MudFilm = 5,
-        FormationExchangeDiagnostic = 6
+        FormationExchangeDiagnostic = 6,
+        PitLineupCorrection = 7
     }
 }

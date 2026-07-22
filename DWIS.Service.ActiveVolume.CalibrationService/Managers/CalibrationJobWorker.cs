@@ -81,8 +81,13 @@ namespace DWIS.Service.ActiveVolume.CalibrationService.Managers
                 return;
             }
 
-            ActiveVolumeFusionEngine engine = new();
             ActiveVolumeContext context = ToContext(activeCase);
+            List<ActiveVolumeSample> orderedSamples = chunks
+                .OrderBy(x => x.ChunkIndex)
+                .SelectMany(chunk => chunk.Samples.OrderBy(sample => sample.TimestampUtc))
+                .ToList();
+            PitLineupCorrectionResult pitLineupCorrection = DetectPitLineupCorrections(orderedSamples);
+            ActiveVolumeFusionEngine engine = new();
             int processed = 0;
             double innovationEnergy = 0.0;
             long sampleCount = 0;
@@ -91,9 +96,10 @@ namespace DWIS.Service.ActiveVolume.CalibrationService.Managers
             {
                 foreach (ActiveVolumeSample sample in chunk.Samples.OrderBy(x => x.TimestampUtc))
                 {
+                    ActiveVolumeSample correctedSample = ApplyPitLineupCorrection(sample, pitLineupCorrection.Events);
                     ActiveVolumeFusionResult result = engine.Process(new ActiveVolumeFusionInput
                     {
-                        Sample = sample,
+                        Sample = correctedSample,
                         Context = context
                     });
                     innovationEnergy += result.Innovation * result.Innovation;
@@ -109,7 +115,7 @@ namespace DWIS.Service.ActiveVolume.CalibrationService.Managers
 
             double rmsInnovation = sampleCount > 0 ? Math.Sqrt(innovationEnergy / sampleCount) : double.PositiveInfinity;
             double quality = double.IsFinite(rmsInnovation) ? 1.0 / (1.0 + rmsInnovation) : 0.0;
-            CalibrationRecord calibration = CreateBaselineCalibration(activeCase, context, quality);
+            CalibrationRecord calibration = CreateBaselineCalibration(activeCase, context, quality, pitLineupCorrection);
             store_.SaveCalibration(calibration);
 
             job.State = CalibrationJobState.Succeeded;
@@ -137,16 +143,21 @@ namespace DWIS.Service.ActiveVolume.CalibrationService.Managers
             };
         }
 
-        private static CalibrationRecord CreateBaselineCalibration(ActiveVolumeCase activeCase, ActiveVolumeContext context, double quality)
+        private static CalibrationRecord CreateBaselineCalibration(
+            ActiveVolumeCase activeCase,
+            ActiveVolumeContext context,
+            double quality,
+            PitLineupCorrectionResult pitLineupCorrection)
         {
             return new CalibrationRecord
             {
                 SourceCaseID = activeCase.ID,
                 Context = context,
                 Quality = quality,
-                Notes = "Baseline replay calibration. Detailed observability-aware regression can update this record shape without changing the API.",
+                Notes = "Baseline replay calibration with active-volume pit-lineup jump correction.",
                 Components =
                 [
+                    CreatePitLineupCorrectionComponent(pitLineupCorrection, quality),
                     new CalibrationParameterSet
                     {
                         Component = CalibrationComponent.ReturnFlow,
@@ -179,5 +190,122 @@ namespace DWIS.Service.ActiveVolume.CalibrationService.Managers
                 ]
             };
         }
+
+        private static CalibrationParameterSet CreatePitLineupCorrectionComponent(PitLineupCorrectionResult result, double quality)
+        {
+            CalibrationParameterSet component = new()
+            {
+                Component = CalibrationComponent.PitLineupCorrection,
+                Quality = quality,
+                Message = result.Events.Count == 0
+                    ? "No active-volume pit-lineup discontinuities were detected."
+                    : $"Detected {result.Events.Count} active-volume pit-lineup discontinuit{(result.Events.Count == 1 ? "y" : "ies")}."
+            };
+            component.Parameters["JumpCount"] = result.Events.Count;
+            component.Parameters["DetectionThresholdVolume"] = result.DetectionThresholdVolume;
+            for (int index = 0; index < result.Events.Count; index++)
+            {
+                PitLineupCorrectionEvent correctionEvent = result.Events[index];
+                component.Parameters[$"Jump{index + 1}TimeUnixSeconds"] = correctionEvent.TimestampUtc.ToUnixTimeSeconds();
+                component.Parameters[$"Jump{index + 1}Offset"] = correctionEvent.OffsetVolume;
+                component.Parameters[$"Jump{index + 1}CumulativeOffset"] = correctionEvent.CumulativeOffsetVolume;
+            }
+
+            return component;
+        }
+
+        private static PitLineupCorrectionResult DetectPitLineupCorrections(List<ActiveVolumeSample> orderedSamples)
+        {
+            List<(DateTimeOffset TimestampUtc, double Delta)> deltas = new();
+            ActiveVolumeSample? previous = null;
+            foreach (ActiveVolumeSample sample in orderedSamples.Where(sample => sample.ActiveVolume.HasValue).OrderBy(sample => sample.TimestampUtc))
+            {
+                if (previous?.ActiveVolume is double previousVolume)
+                {
+                    deltas.Add((sample.TimestampUtc, sample.ActiveVolume!.Value - previousVolume));
+                }
+
+                previous = sample;
+            }
+
+            if (deltas.Count == 0)
+            {
+                return new PitLineupCorrectionResult([], 0.0);
+            }
+
+            double medianAbsoluteDelta = Median(deltas.Select(delta => Math.Abs(delta.Delta)).Where(value => value > 0.0).ToList());
+            double threshold = Math.Max(5.0, Math.Max(8.0 * medianAbsoluteDelta, 1.0));
+            List<PitLineupCorrectionEvent> events = new();
+            double cumulativeOffset = 0.0;
+            foreach ((DateTimeOffset timestampUtc, double delta) in deltas)
+            {
+                if (Math.Abs(delta) < threshold)
+                {
+                    continue;
+                }
+
+                cumulativeOffset += delta;
+                events.Add(new PitLineupCorrectionEvent(timestampUtc, delta, cumulativeOffset));
+            }
+
+            return new PitLineupCorrectionResult(events, threshold);
+        }
+
+        private static ActiveVolumeSample ApplyPitLineupCorrection(ActiveVolumeSample sample, List<PitLineupCorrectionEvent> events)
+        {
+            if (!sample.ActiveVolume.HasValue || events.Count == 0)
+            {
+                return sample;
+            }
+
+            double offset = events
+                .Where(correctionEvent => correctionEvent.TimestampUtc <= sample.TimestampUtc)
+                .Select(correctionEvent => correctionEvent.CumulativeOffsetVolume)
+                .LastOrDefault();
+
+            return new ActiveVolumeSample
+            {
+                TimestampUtc = sample.TimestampUtc,
+                ActiveVolume = sample.ActiveVolume.Value - offset,
+                FlowrateIn = sample.FlowrateIn,
+                FlowPaddlePosition = sample.FlowPaddlePosition,
+                CoriolisVolumetricFlowrate = sample.CoriolisVolumetricFlowrate,
+                CoriolisMassFlowrate = sample.CoriolisMassFlowrate,
+                ReturnMudDensity = sample.ReturnMudDensity,
+                CuttingsRecoveryRate = sample.CuttingsRecoveryRate,
+                CuttingsParticleSizeDistribution = sample.CuttingsParticleSizeDistribution,
+                StandPipePressure = sample.StandPipePressure,
+                InletMudTemperature = sample.InletMudTemperature,
+                OutletMudTemperature = sample.OutletMudTemperature,
+                BottomOfStringDepth = sample.BottomOfStringDepth,
+                BottomHoleDepth = sample.BottomHoleDepth,
+                AxialPipeVelocity = sample.AxialPipeVelocity,
+                AdditionalSignals = sample.AdditionalSignals,
+                QualityFlags = sample.QualityFlags
+            };
+        }
+
+        private static double Median(List<double> values)
+        {
+            if (values.Count == 0)
+            {
+                return 0.0;
+            }
+
+            values.Sort();
+            int middle = values.Count / 2;
+            return values.Count % 2 == 0
+                ? 0.5 * (values[middle - 1] + values[middle])
+                : values[middle];
+        }
+
+        private sealed record PitLineupCorrectionResult(
+            List<PitLineupCorrectionEvent> Events,
+            double DetectionThresholdVolume);
+
+        private sealed record PitLineupCorrectionEvent(
+            DateTimeOffset TimestampUtc,
+            double OffsetVolume,
+            double CumulativeOffsetVolume);
     }
 }

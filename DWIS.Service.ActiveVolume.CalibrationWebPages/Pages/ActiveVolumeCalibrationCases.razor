@@ -447,7 +447,7 @@ else
                             <MudText>@selectedCalibration_.ModelVersion</MudText>
                         </MudItem>
                     </MudGrid>
-                    <MudTable Items="@selectedCalibration_.Components" T="CalibrationParameterSet" Dense="true" Hover="true" Class="mt-3">
+                    <MudTable Items="@selectedCalibration_.Components" T="CalibrationParameterSet" Dense="true" Hover="true" Class="mt-3" OnRowClick="OnCalibrationComponentRowClicked">
                         <HeaderContent>
                             <MudTh>Component</MudTh>
                             <MudTh>Quality</MudTh>
@@ -461,6 +461,70 @@ else
                             <MudTd>@context.Message</MudTd>
                         </RowTemplate>
                     </MudTable>
+
+                    @if (selectedCalibrationComponent_ is not null)
+                    {
+                        <MudPaper Class="pa-4 mt-4" Elevation="0">
+                            <MudText Typo="Typo.h6">@FormatCalibrationComponent(selectedCalibrationComponent_.Component)</MudText>
+                            <MudText Typo="Typo.caption">@selectedCalibrationComponent_.Message</MudText>
+
+                            <MudGrid Class="mt-2">
+                                <MudItem xs="12" md="6">
+                                    <MudText Typo="Typo.subtitle2">Calibrated Parameters</MudText>
+                                    <MudTable Items="@selectedCalibrationComponent_.Parameters" T="KeyValuePair<string, double>" Dense="true" Hover="true">
+                                        <HeaderContent>
+                                            <MudTh>Name</MudTh>
+                                            <MudTh>Value</MudTh>
+                                            <MudTh>Std. dev.</MudTh>
+                                            <MudTh>Lower</MudTh>
+                                            <MudTh>Upper</MudTh>
+                                        </HeaderContent>
+                                        <RowTemplate>
+                                            <MudTd>@context.Key</MudTd>
+                                            <MudTd>@context.Value.ToString("G6")</MudTd>
+                                            <MudTd>@FormatCalibrationParameterBound(selectedCalibrationComponent_.StandardDeviations, context.Key)</MudTd>
+                                            <MudTd>@FormatCalibrationParameterBound(selectedCalibrationComponent_.LowerBounds, context.Key)</MudTd>
+                                            <MudTd>@FormatCalibrationParameterBound(selectedCalibrationComponent_.UpperBounds, context.Key)</MudTd>
+                                        </RowTemplate>
+                                    </MudTable>
+                                </MudItem>
+                                <MudItem xs="12" md="6">
+                                    <MudText Typo="Typo.subtitle2">Calibration Samples</MudText>
+                                    @if (isLoadingCalibrationSamples_)
+                                    {
+                                        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+                                    }
+                                    else
+                                    {
+                                        <MudTable Items="@calibrationSampleSequences_" T="CalibrationSampleSequence" MultiSelection="true" SelectedItems="@selectedCalibrationSampleSequences_" SelectedItemsChanged="OnCalibrationSampleSelectionChanged" Dense="true" Hover="true" Bordered="true">
+                                            <HeaderContent>
+                                                <MudTh>Sample</MudTh>
+                                                <MudTh>Start</MudTh>
+                                                <MudTh>Duration</MudTh>
+                                                <MudTh>Points</MudTh>
+                                            </HeaderContent>
+                                            <RowTemplate>
+                                                <MudTd>@context.Name</MudTd>
+                                                <MudTd>@FormatDate(context.StartTimeUtc)</MudTd>
+                                                <MudTd>@FormatDuration(context.Duration)</MudTd>
+                                                <MudTd>@context.SampleCount</MudTd>
+                                            </RowTemplate>
+                                        </MudTable>
+                                    }
+                                </MudItem>
+                                <MudItem xs="12">
+                                    @if (selectedCalibrationSampleSequences_.Count == 0)
+                                    {
+                                        <MudText>Select one or more calibration samples to inspect the model replay.</MudText>
+                                    }
+                                    else
+                                    {
+                                        <PlotlyChart @key="calibrationDetailGraphRevision_" Config="calibrationDetailGraphConfig_" Layout="calibrationDetailGraphLayout_" Data="calibrationDetailGraphData_" />
+                                    }
+                                </MudItem>
+                            </MudGrid>
+                        </MudPaper>
+                    }
                 }
             </MudPaper>
         }
@@ -474,8 +538,11 @@ else
     private ActiveVolumeCaseLight? selectedCaseLight_;
     private ActiveVolumeCase? currentCase_;
     private CalibrationRecord? selectedCalibration_;
+    private CalibrationParameterSet? selectedCalibrationComponent_;
     private MudUnitAndReferenceChoiceTag? unitReferenceTag_;
     private HashSet<DelimitedColumnMapping> selectedImportColumns_ = new();
+    private List<CalibrationSampleSequence> calibrationSampleSequences_ = new();
+    private HashSet<CalibrationSampleSequence> selectedCalibrationSampleSequences_ = new();
     private List<FieldLight> fieldList_ = new();
     private List<ClusterLight> clusterList_ = new();
     private List<Well> wellList_ = new();
@@ -487,6 +554,7 @@ else
     private bool isEditing_;
     private bool isLoadingCase_;
     private bool isLoadingCalibration_;
+    private bool isLoadingCalibrationSamples_;
     private bool isBusy_;
     private bool isImportingRealtimeData_;
     private bool isLoadingRealtimeGraphData_;
@@ -522,6 +590,32 @@ else
         ShowLegend = true
     };
     private readonly IList<ITrace> realtimeGraphData_ = new List<ITrace>();
+    private readonly Config calibrationDetailGraphConfig_ = new() { Responsive = true };
+    private readonly Layout calibrationDetailGraphLayout_ = new()
+    {
+        Height = 420,
+        Title = new Plotly.Blazor.LayoutLib.Title { Text = "Calibration replay" },
+        XAxis = new List<XAxis>
+        {
+            new()
+            {
+                Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Elapsed time (s)" },
+                ShowGrid = true
+            }
+        },
+        YAxis = new List<YAxis>
+        {
+            new()
+            {
+                Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = "Value" },
+                AutoRange = Plotly.Blazor.LayoutLib.YAxisLib.AutoRangeEnum.True,
+                ShowGrid = true
+            }
+        },
+        ShowLegend = true
+    };
+    private readonly IList<ITrace> calibrationDetailGraphData_ = new List<ITrace>();
+    private int calibrationDetailGraphRevision_;
 
     private Guid? SelectedFieldId => ToNullableGuid(currentCase_?.FieldID);
     private Guid? SelectedClusterId => ToNullableGuid(currentCase_?.ClusterID);
@@ -663,6 +757,7 @@ else
     {
         ActiveVolumeCalibrationUnitAndReferenceDataUtils.UpdateUnitSystemName(unitSystemName);
         UpdateRealtimeGraphPlot();
+        UpdateCalibrationDetailGraph();
         return InvokeAsync(StateHasChanged);
     }
 
@@ -670,6 +765,7 @@ else
     {
         ActiveVolumeCalibrationUnitAndReferenceDataUtils.UpdateDepthReferenceName(depthReferenceName);
         UpdateRealtimeGraphPlot();
+        UpdateCalibrationDetailGraph();
         return InvokeAsync(StateHasChanged);
     }
 
@@ -717,6 +813,7 @@ else
         };
         selectedCaseLight_ = ToLight(currentCase_);
         selectedCalibration_ = null;
+        ClearCalibrationInspection();
         realtimeGraphSamples_.Clear();
         ResetGraphWindow();
         isEditing_ = true;
@@ -737,6 +834,7 @@ else
         isEditing_ = true;
         isLoadingCase_ = true;
         selectedCalibration_ = null;
+        ClearCalibrationInspection();
         currentCase_ = null;
         realtimeGraphSamples_.Clear();
         ResetGraphWindow();
@@ -750,6 +848,13 @@ else
             isLoadingCalibration_ = true;
             selectedCalibration_ = await Api.GetCalibrationAsync(calibrationId);
             isLoadingCalibration_ = false;
+            selectedCalibrationComponent_ = selectedCalibration_?.Components?.FirstOrDefault();
+            if (selectedCalibrationComponent_ is not null)
+            {
+                await EnsureCalibrationSamplesLoadedAsync();
+                selectedCalibrationSampleSequences_ = calibrationSampleSequences_.Take(1).ToHashSet();
+                UpdateCalibrationDetailGraph();
+            }
         }
     }
 
@@ -781,6 +886,7 @@ else
             currentCase_ = null;
             selectedCaseLight_ = null;
             selectedCalibration_ = null;
+            ClearCalibrationInspection();
             realtimeGraphSamples_.Clear();
             isEditing_ = false;
         }
@@ -826,12 +932,307 @@ else
         selectedCaseLight_ = cases_?.FirstOrDefault(item => item.Id == currentCase_.Id) ?? selectedCaseLight_;
     }
 
+    private async Task OnCalibrationComponentRowClicked(TableRowClickEventArgs<CalibrationParameterSet> args)
+    {
+        if (args.Item is null)
+        {
+            return;
+        }
+
+        selectedCalibrationComponent_ = args.Item;
+        await EnsureCalibrationSamplesLoadedAsync();
+        if (selectedCalibrationSampleSequences_.Count == 0 && calibrationSampleSequences_.Count > 0)
+        {
+            selectedCalibrationSampleSequences_ = calibrationSampleSequences_.Take(1).ToHashSet();
+        }
+
+        UpdateCalibrationDetailGraph();
+    }
+
+    private async Task EnsureCalibrationSamplesLoadedAsync()
+    {
+        if (currentCase_ is null || currentCase_.Id == Guid.Empty || calibrationSampleSequences_.Count > 0)
+        {
+            return;
+        }
+
+        isLoadingCalibrationSamples_ = true;
+        try
+        {
+            ActiveVolumeCase? caseWithChunks = await Api.GetCaseAsync(currentCase_.Id, includeChunks: true);
+            calibrationSampleSequences_ = caseWithChunks?.Chunks?
+                .OrderBy(chunk => chunk.ChunkIndex)
+                .Select(chunk => new CalibrationSampleSequence(
+                    chunk.ChunkIndex,
+                    $"Sample {chunk.ChunkIndex + 1}",
+                    chunk.StartTimeUtc,
+                    chunk.EndTimeUtc,
+                    chunk.Samples?.OrderBy(sample => sample.TimestampUtc).ToList() ?? new List<ActiveVolumeSample>()))
+                .Where(sequence => sequence.SampleCount > 0)
+                .ToList() ?? new List<CalibrationSampleSequence>();
+        }
+        finally
+        {
+            isLoadingCalibrationSamples_ = false;
+        }
+    }
+
+    private void ClearCalibrationInspection()
+    {
+        selectedCalibrationComponent_ = null;
+        calibrationSampleSequences_.Clear();
+        selectedCalibrationSampleSequences_.Clear();
+        calibrationDetailGraphData_.Clear();
+        calibrationDetailGraphRevision_++;
+    }
+
+    private void OnCalibrationSampleSelectionChanged(HashSet<CalibrationSampleSequence> selectedSamples)
+    {
+        selectedCalibrationSampleSequences_ = selectedSamples;
+        UpdateCalibrationDetailGraph();
+    }
+
+    private void UpdateCalibrationDetailGraph()
+    {
+        calibrationDetailGraphData_.Clear();
+        if (selectedCalibration_ is null || selectedCalibrationComponent_ is null || selectedCalibrationSampleSequences_.Count == 0)
+        {
+            calibrationDetailGraphRevision_++;
+            return;
+        }
+
+        CalibrationReplayQuantity replayQuantity = GetCalibrationReplayQuantity(selectedCalibrationComponent_.Component);
+        string unitLabel = GetCalibrationReplayUnitLabel(replayQuantity);
+        calibrationDetailGraphLayout_.Title.Text = $"{FormatCalibrationComponent(selectedCalibrationComponent_.Component)} replay";
+        calibrationDetailGraphLayout_.YAxis.First().Title.Text = string.IsNullOrWhiteSpace(unitLabel)
+            ? replayQuantity.DisplayName
+            : $"{replayQuantity.DisplayName}<br>({unitLabel})";
+
+        foreach (CalibrationSampleSequence sequence in selectedCalibrationSampleSequences_.OrderBy(sample => sample.ChunkIndex))
+        {
+            List<CalibrationReplayPoint> replayPoints = BuildCalibrationReplayPoints(sequence, replayQuantity);
+            if (replayPoints.Count == 0)
+            {
+                continue;
+            }
+
+            calibrationDetailGraphData_.Add(new Scatter
+            {
+                Name = $"{sequence.Name} actual",
+                Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines,
+                X = replayPoints.Select(point => (object)point.ElapsedSeconds).ToList(),
+                Y = replayPoints.Select(point => (object)point.ActualValue).ToList(),
+                ShowLegend = true
+            });
+            calibrationDetailGraphData_.Add(new Scatter
+            {
+                Name = $"{sequence.Name} model",
+                Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines,
+                X = replayPoints.Select(point => (object)point.ElapsedSeconds).ToList(),
+                Y = replayPoints.Select(point => (object)point.ModelValue).ToList(),
+                ShowLegend = true
+            });
+        }
+
+        calibrationDetailGraphRevision_++;
+    }
+
+    private List<CalibrationReplayPoint> BuildCalibrationReplayPoints(CalibrationSampleSequence sequence, CalibrationReplayQuantity replayQuantity)
+    {
+        List<CalibrationReplayPoint> points = new();
+        if (selectedCalibration_ is null)
+        {
+            return points;
+        }
+
+        DateTimeOffset? previousTimestamp = null;
+        double correctedActiveVolume = sequence.Samples.FirstOrDefault() is ActiveVolumeSample firstSample
+            ? GetPitLineupCorrectedActiveVolume(firstSample, selectedCalibration_) ?? firstSample.ActiveVolume ?? 0.0
+            : 0.0;
+        bool initialized = false;
+
+        foreach (ActiveVolumeSample sample in sequence.Samples.OrderBy(sample => sample.TimestampUtc))
+        {
+            double? actualValue = GetCalibrationActualValue(sample, replayQuantity, selectedCalibration_);
+            double? modelValue = replayQuantity.Kind == CalibrationReplayQuantityKind.ReturnFlow
+                ? EstimateCalibratedReturnFlow(sample, selectedCalibration_)
+                : ReplayCalibratedActiveVolume(sample, selectedCalibration_, ref previousTimestamp, ref correctedActiveVolume, ref initialized);
+            if (!actualValue.HasValue || !modelValue.HasValue)
+            {
+                continue;
+            }
+
+            double? convertedActual = ConvertCalibrationReplayValueFromSI(actualValue.Value, replayQuantity);
+            double? convertedModel = ConvertCalibrationReplayValueFromSI(modelValue.Value, replayQuantity);
+            if (!convertedActual.HasValue || !convertedModel.HasValue)
+            {
+                continue;
+            }
+
+            double elapsedSeconds = (sample.TimestampUtc - sequence.StartTimeUtc).TotalSeconds;
+            points.Add(new CalibrationReplayPoint(elapsedSeconds, convertedActual.Value, convertedModel.Value));
+        }
+
+        return points;
+    }
+
+    private static double? GetCalibrationActualValue(ActiveVolumeSample sample, CalibrationReplayQuantity replayQuantity, CalibrationRecord calibration)
+    {
+        return replayQuantity.Kind switch
+        {
+            CalibrationReplayQuantityKind.ActiveVolume => GetPitLineupCorrectedActiveVolume(sample, calibration),
+            CalibrationReplayQuantityKind.ReturnFlow => sample.CoriolisVolumetricFlowrate
+                ?? (sample.CoriolisMassFlowrate.HasValue && sample.ReturnMudDensity is > 0.0 ? sample.CoriolisMassFlowrate / sample.ReturnMudDensity : null)
+                ?? sample.FlowrateIn,
+            _ => null
+        };
+    }
+
+    private static double EstimateCalibratedReturnFlow(ActiveVolumeSample sample, CalibrationRecord calibration)
+    {
+        return calibration.Context.ReturnFlowMeasurementMode switch
+        {
+            ReturnFlowMeasurementMode.FlowPaddle => EstimateFlowPaddleReturnFlow(sample, calibration),
+            ReturnFlowMeasurementMode.CoriolisFlowmeter => EstimateCoriolisReturnFlow(sample, calibration),
+            _ => Math.Max(0.0, sample.FlowrateIn ?? 0.0)
+        };
+    }
+
+    private static double EstimateFlowPaddleReturnFlow(ActiveVolumeSample sample, CalibrationRecord calibration)
+    {
+        double paddle = Math.Max(0.0, sample.FlowPaddlePosition ?? 0.0);
+        double onset = GetCalibrationParameter(calibration, CalibrationComponent.ReturnFlow, "PaddleOnset", 0.05);
+        double scale = GetCalibrationParameter(calibration, CalibrationComponent.ReturnFlow, "PaddleScale", Math.Max(0.0, sample.FlowrateIn ?? 0.0));
+        double exponent = GetCalibrationParameter(calibration, CalibrationComponent.ReturnFlow, "PaddleExponent", 1.0);
+        double lowFlowGain = GetCalibrationParameter(calibration, CalibrationComponent.LowFlowSurrogate, "LowFlowGain", 0.85);
+
+        return paddle <= onset
+            ? Math.Max(0.0, lowFlowGain * (sample.FlowrateIn ?? 0.0))
+            : Math.Max(0.0, scale * Math.Pow(paddle - onset, exponent));
+    }
+
+    private static double EstimateCoriolisReturnFlow(ActiveVolumeSample sample, CalibrationRecord calibration)
+    {
+        double scale = GetCalibrationParameter(calibration, CalibrationComponent.ReturnFlow, "CoriolisScale", 1.0);
+        if (sample.CoriolisMassFlowrate.HasValue && sample.ReturnMudDensity is > 0.0)
+        {
+            return Math.Max(0.0, scale * (sample.CoriolisMassFlowrate ?? 0.0) / sample.ReturnMudDensity.Value);
+        }
+
+        return Math.Max(0.0, scale * (sample.CoriolisVolumetricFlowrate ?? 0.0));
+    }
+
+    private static double ReplayCalibratedActiveVolume(
+        ActiveVolumeSample sample,
+        CalibrationRecord calibration,
+        ref DateTimeOffset? previousTimestamp,
+        ref double correctedActiveVolume,
+        ref bool initialized)
+    {
+        double measuredVolume = GetPitLineupCorrectedActiveVolume(sample, calibration) ?? correctedActiveVolume;
+        if (!initialized)
+        {
+            correctedActiveVolume = measuredVolume;
+            initialized = true;
+            previousTimestamp = sample.TimestampUtc;
+            return correctedActiveVolume;
+        }
+
+        double dt = previousTimestamp.HasValue
+            ? Math.Clamp((sample.TimestampUtc - previousTimestamp.Value).TotalSeconds, 0.1, 60.0)
+            : 1.0;
+        double returnFlow = EstimateCalibratedReturnFlow(sample, calibration);
+        double inletFlow = Math.Max(0.0, sample.FlowrateIn ?? 0.0);
+        double cuttingsFlow = Math.Max(0.0, sample.CuttingsRecoveryRate ?? 0.0);
+        correctedActiveVolume += dt * (returnFlow - inletFlow - cuttingsFlow);
+        previousTimestamp = sample.TimestampUtc;
+        return correctedActiveVolume;
+    }
+
+    private static double GetCalibrationParameter(CalibrationRecord calibration, CalibrationComponent component, string name, double fallback)
+    {
+        return calibration.Components?.FirstOrDefault(parameterSet => parameterSet.Component == component)?.Parameters?.TryGetValue(name, out double value) == true
+            ? value
+            : fallback;
+    }
+
+    private static double? GetPitLineupCorrectedActiveVolume(ActiveVolumeSample sample, CalibrationRecord calibration)
+    {
+        if (!sample.ActiveVolume.HasValue)
+        {
+            return null;
+        }
+
+        IDictionary<string, double>? parameters = calibration.Components?
+            .FirstOrDefault(parameterSet => parameterSet.Component == CalibrationComponent.PitLineupCorrection)?
+            .Parameters;
+        if (parameters is null || !parameters.TryGetValue("JumpCount", out double jumpCountValue))
+        {
+            return sample.ActiveVolume;
+        }
+
+        int jumpCount = Math.Max(0, (int)Math.Round(jumpCountValue));
+        double cumulativeOffset = 0.0;
+        for (int index = 1; index <= jumpCount; index++)
+        {
+            if (!parameters.TryGetValue($"Jump{index}TimeUnixSeconds", out double timestampSeconds) ||
+                !parameters.TryGetValue($"Jump{index}CumulativeOffset", out double candidateOffset))
+            {
+                continue;
+            }
+
+            DateTimeOffset timestamp = DateTimeOffset.FromUnixTimeSeconds((long)Math.Round(timestampSeconds));
+            if (timestamp <= sample.TimestampUtc)
+            {
+                cumulativeOffset = candidateOffset;
+            }
+        }
+
+        return sample.ActiveVolume.Value - cumulativeOffset;
+    }
+
+    private CalibrationReplayQuantity GetCalibrationReplayQuantity(CalibrationComponent component)
+    {
+        return component switch
+        {
+            CalibrationComponent.PitLineupCorrection => new CalibrationReplayQuantity(CalibrationReplayQuantityKind.ActiveVolume, "Corrected active volume", "VolumeDrilling", false),
+            CalibrationComponent.ReturnFlow => new CalibrationReplayQuantity(CalibrationReplayQuantityKind.ReturnFlow, "Return flow", "VolumetricFlowrateDrilling", false),
+            CalibrationComponent.LowFlowSurrogate => new CalibrationReplayQuantity(CalibrationReplayQuantityKind.ActiveVolume, "Active volume", "VolumeDrilling", false),
+            _ => new CalibrationReplayQuantity(CalibrationReplayQuantityKind.ActiveVolume, "Active volume", "VolumeDrilling", false)
+        };
+    }
+
+    private double? ConvertCalibrationReplayValueFromSI(double value, CalibrationReplayQuantity replayQuantity)
+    {
+        if (unitReferenceTag_ is null)
+        {
+            return value;
+        }
+
+        return replayQuantity.UsesDepthReference
+            ? ConvertGraphValueFromSI(value, new RealtimeSignalDescriptor(ActiveVolumeSignalKind.BottomHoleDepth, replayQuantity.DisplayName, replayQuantity.PhysicalQuantity, true))
+            : unitReferenceTag_.FromSI(value, replayQuantity.PhysicalQuantity);
+    }
+
+    private string GetCalibrationReplayUnitLabel(CalibrationReplayQuantity replayQuantity)
+    {
+        if (unitReferenceTag_ is null)
+        {
+            return string.Empty;
+        }
+
+        return replayQuantity.UsesDepthReference
+            ? unitReferenceTag_.GetDepthUnitLabel(replayQuantity.PhysicalQuantity) ?? string.Empty
+            : unitReferenceTag_.GetUnitLabel(replayQuantity.PhysicalQuantity) ?? string.Empty;
+    }
+
     private async Task CloseEditorAsync()
     {
         isEditing_ = false;
         currentCase_ = null;
         selectedCaseLight_ = null;
         selectedCalibration_ = null;
+        ClearCalibrationInspection();
         realtimeGraphSamples_.Clear();
         await ReloadCasesAsync();
     }
@@ -2459,6 +2860,26 @@ else
         return item.CalibrationQuality is double quality ? $"{quality:F3}" : "Available";
     }
 
+    private static string FormatCalibrationComponent(CalibrationComponent component) => component switch
+    {
+        CalibrationComponent.PitLineupCorrection => "Pit Lineup Correction",
+        CalibrationComponent.ReturnFlow => "Return Flow",
+        CalibrationComponent.LowFlowSurrogate => "Low Flow Surrogate",
+        _ => component.ToString()
+    };
+
+    private static string FormatCalibrationParameterBound(IDictionary<string, double>? values, string key)
+    {
+        return values is not null && values.TryGetValue(key, out double value) ? value.ToString("G6") : string.Empty;
+    }
+
+    private static string FormatDuration(TimeSpan duration)
+    {
+        return duration.TotalHours >= 1.0
+            ? duration.ToString(@"h\:mm\:ss")
+            : duration.ToString(@"m\:ss");
+    }
+
     private static ActiveVolumeCaseLight ToLight(ActiveVolumeCase activeCase)
     {
         return new ActiveVolumeCaseLight
@@ -2513,4 +2934,32 @@ else
         string DisplayName,
         string PhysicalQuantity,
         bool UsesDepthReference);
+
+    private sealed record CalibrationSampleSequence(
+        int ChunkIndex,
+        string Name,
+        DateTimeOffset StartTimeUtc,
+        DateTimeOffset EndTimeUtc,
+        List<ActiveVolumeSample> Samples)
+    {
+        public int SampleCount => Samples.Count;
+        public TimeSpan Duration => EndTimeUtc - StartTimeUtc;
+    }
+
+    private sealed record CalibrationReplayQuantity(
+        CalibrationReplayQuantityKind Kind,
+        string DisplayName,
+        string PhysicalQuantity,
+        bool UsesDepthReference);
+
+    private enum CalibrationReplayQuantityKind
+    {
+        ActiveVolume,
+        ReturnFlow
+    }
+
+    private sealed record CalibrationReplayPoint(
+        double ElapsedSeconds,
+        double ActualValue,
+        double ModelValue);
 }

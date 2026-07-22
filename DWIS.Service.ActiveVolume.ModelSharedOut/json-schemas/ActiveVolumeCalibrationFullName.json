@@ -1211,7 +1211,8 @@
           "ThermalExpansion",
           "SurfaceRetention",
           "MudFilm",
-          "FormationExchangeDiagnostic"
+          "FormationExchangeDiagnostic",
+          "PitLineupCorrection"
         ],
         "type": "string"
       },
